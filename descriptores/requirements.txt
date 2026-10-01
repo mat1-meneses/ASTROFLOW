@@ -1,0 +1,4 @@
+feets
+fastapi
+uvicorn
+requests

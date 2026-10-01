@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: astroflow-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: astroflow
+      POSTGRES_PASSWORD: astroflow_dev
+      POSTGRES_DB: astroflow
+    ports:
+      - "5432:5432"
+    volumes:
+      - astroflow_pgdata:/var/lib/postgresql/data
+
+volumes:
+  astroflow_pgdata:

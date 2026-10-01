@@ -1,0 +1,71 @@
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import 'tailwindcss';
+
+@theme {
+  --color-astro-bg: #070c17;
+  --color-astro-surface: #0d1827;
+  --color-astro-surface-2: #122036;
+  --color-astro-border: #1d3050;
+  --color-astro-text: #dde6f4;
+  --color-astro-muted: #5e738a;
+  --color-astro-accent: #38bdf8;
+  --color-astro-indigo: #818cf8;
+  --color-astro-green: #34d399;
+  --color-astro-amber: #fbbf24;
+  --color-astro-red: #f87171;
+  --font-sans: 'Instrument Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  background-color: #070c17;
+  color: #dde6f4;
+  font-family: 'Instrument Sans', system-ui, sans-serif;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #1d3050 transparent;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #1d3050;
+  border-radius: 3px;
+}
+
+/* ── Print / PDF export ─────────────────────────────────────────── */
+
+/* Hide print area on screen */
+.astroflow-print-wrapper {
+  display: none;
+}
+
+@media print {
+  html, body, #root {
+    background: #fff !important;
+    color: #111 !important;
+    height: auto !important;
+  }
+
+  #astroflow-print strong {
+    color: inherit !important;
+  }
+
+  @page {
+    margin: 2cm 2.5cm;
+    size: A4 portrait;
+  }
+}
