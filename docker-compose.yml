@@ -8,9 +8,16 @@ services:
       POSTGRES_PASSWORD: astroflow_dev
       POSTGRES_DB: astroflow
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - astroflow_pgdata:/var/lib/postgresql/data
+
+  descriptores:
+    build: ./descriptores
+    container_name: astroflow-descriptores
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8000:8000"
 
 volumes:
   astroflow_pgdata:

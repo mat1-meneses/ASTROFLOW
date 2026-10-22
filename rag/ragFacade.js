@@ -20,6 +20,15 @@ function buildRetrievalQuery(descriptores) {
   return partes.join(', ');
 }
 
+const fs = require("fs");
+fs.writeFileSync(
+  "tests/ultimo_fragmentos.json",
+  JSON.stringify(
+    fragmentos.map((f, i) => ({ n: i + 1, doc: f.documento, texto: f.texto })),
+    null, 2
+  )
+);
+
 function buildPrompt(descriptores, chunksContexto) {
   const contextoTexto = chunksContexto
     .map((c, i) => `[Fuente ${i + 1}: ${c.titulo}]\n${c.contenido}`)
