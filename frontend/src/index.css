@@ -2,18 +2,50 @@
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import 'tailwindcss';
 
-@theme {
-  --color-astro-bg: #070c17;
-  --color-astro-surface: #0d1827;
-  --color-astro-surface-2: #122036;
-  --color-astro-border: #1d3050;
-  --color-astro-text: #dde6f4;
-  --color-astro-muted: #5e738a;
-  --color-astro-accent: #38bdf8;
-  --color-astro-indigo: #818cf8;
-  --color-astro-green: #34d399;
-  --color-astro-amber: #fbbf24;
-  --color-astro-red: #f87171;
+/* Tema oscuro = original (por defecto) */
+:root {
+  --astro-bg: #070c17;
+  --astro-surface: #0d1827;
+  --astro-surface-2: #122036;
+  --astro-border: #1d3050;
+  --astro-text: #dde6f4;
+  --astro-muted: #5e738a;
+  --astro-accent: #38bdf8;
+  --astro-indigo: #818cf8;
+  --astro-green: #34d399;
+  --astro-amber: #fbbf24;
+  --astro-red: #f87171;
+  color-scheme: dark;
+}
+
+/* Tema claro */
+:root[data-theme='light'] {
+  --astro-bg: #f4f7fb;
+  --astro-surface: #ffffff;
+  --astro-surface-2: #eaf0f7;
+  --astro-border: #d3dce8;
+  --astro-text: #0f1b2d;
+  --astro-muted: #55667d;
+  --astro-accent: #0284c7;
+  --astro-indigo: #4f46e5;
+  --astro-green: #059669;
+  --astro-amber: #b45309;
+  --astro-red: #dc2626;
+  color-scheme: light;
+}
+
+@theme inline {
+  --color-astro-bg: var(--astro-bg);
+  --color-astro-surface: var(--astro-surface);
+  --color-astro-surface-2: var(--astro-surface-2);
+  --color-astro-border: var(--astro-border);
+  --color-astro-text: var(--astro-text);
+  --color-astro-muted: var(--astro-muted);
+  --color-astro-accent: var(--astro-accent);
+  --color-astro-indigo: var(--astro-indigo);
+  --color-astro-green: var(--astro-green);
+  --color-astro-amber: var(--astro-amber);
+  --color-astro-red: var(--astro-red);
   --font-sans: 'Instrument Sans', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 }
@@ -22,27 +54,20 @@ html,
 body,
 #root {
   height: 100%;
-  background-color: #070c17;
-  color: #dde6f4;
+  background-color: var(--astro-bg);
+  color: var(--astro-text);
   font-family: 'Instrument Sans', system-ui, sans-serif;
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: #1d3050 transparent;
+  scrollbar-color: var(--astro-border) transparent;
 }
 
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background-color: #1d3050;
+  background-color: var(--astro-border);
   border-radius: 3px;
 }
 

@@ -20,11 +20,11 @@ interface Props {
 }
 
 const C = {
-  line: "#38bdf8",
-  grid: "#1d3050",
-  axis: "#5e738a",
-  bg: "#070c17",
-  panel: "#0d1827",
+  line: "var(--astro-accent)",
+  grid: "var(--astro-border)",
+  axis: "var(--astro-muted)",
+  bg: "var(--astro-bg)",
+  panel: "var(--astro-surface)",
 };
 
 export default function LightCurveChart({ points, xLabel, yLabel, invertir }: Props) {

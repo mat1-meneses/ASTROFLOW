@@ -19,11 +19,11 @@ interface Props {
 }
 
 const C = {
-  scatter: "#818cf8",
-  grid: "#1d3050",
-  axis: "#5e738a",
-  panel: "#0d1827",
-  ref: "#1d3050",
+  scatter: "var(--astro-indigo)",
+  grid: "var(--astro-border)",
+  axis: "var(--astro-muted)",
+  panel: "var(--astro-surface)",
+  ref: "var(--astro-border)",
 };
 
 export default function PhasedCurveChart({ points, yLabel, invertir }: Props) {
