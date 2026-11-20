@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { Analisis, Reporte } from "../types";
 import { generarReporte } from "../api/analisis";
 import { plegarEnFase, puntosDesdeSerie } from "../utils/fase";
@@ -31,9 +32,13 @@ export default function AnalysisView({
   onBack,
   backLabel,
 }: Props) {
+  const { t, i18n } = useTranslation();
+  const locale = i18n.resolvedLanguage === "en" ? "en-US" : "es-CL";
+  const idioma = i18n.resolvedLanguage === "en" ? "en" : "es";
+
   const { nombre, configuracion, serie, resultado, reporte } = analisis;
   const invertir = configuracion.tipoBrillo === "magnitud";
-  const yLabel = configuracion.tipoBrillo === "magnitud" ? "Magnitud" : "Flujo";
+  const yLabel = configuracion.tipoBrillo === "magnitud" ? t("analisis.magnitud") : t("analisis.flujo");
   const periodo = resultado.derivados.periodo_principal_dias;
 
   const puntos = useMemo(() => puntosDesdeSerie(serie), [serie]);
@@ -52,7 +57,7 @@ export default function AnalysisView({
   const pedirReporte = useCallback(() => {
     setCargaReporte("cargando");
     setErrorReporte(null);
-    generarReporte({ resultado, banda: configuracion.banda, calibracion: configuracion.calibracion })
+    generarReporte({ resultado, banda: configuracion.banda, calibracion: configuracion.calibracion, idioma })
       .then((r) => {
         onReporteChange(r);
         setCargaReporte("listo");
@@ -61,8 +66,8 @@ export default function AnalysisView({
         setErrorReporte(e.message);
         setCargaReporte("error");
       });
-  }, [resultado, configuracion.banda, configuracion.calibracion, onReporteChange]);
-
+  }, [resultado, configuracion.banda, configuracion.calibracion, idioma, onReporteChange]);
+    
   useEffect(() => {
     if (reporte || pedido.current) return;
     pedido.current = true;
@@ -71,7 +76,7 @@ export default function AnalysisView({
 
   // ─── Exportar PDF ──────────────────────────────────────────────────────────
   const [printing, setPrinting] = useState(false);
-  const analysisDate = new Date().toLocaleDateString("es-CL", {
+  const analysisDate = new Date().toLocaleDateString(locale, {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -105,19 +110,19 @@ export default function AnalysisView({
   const descartadosRuido =
     resultado.n_puntos_recibidos - resultado.n_descartados_faltantes - resultado.n_puntos_usados;
   const pipeline = [
-    `${serie.time.length} obs. válidas en el archivo (${configuracion.banda})`,
-    `${resultado.n_descartados_faltantes} valores faltantes descartados en el servidor`,
-    `${descartadosRuido} puntos eliminados por ruido (feets)`,
-    "Lomb-Scargle y descriptores (feets)",
-    "Amplitud con fórmula FATS",
-    cargaReporte === "listo" ? "Reporte RAG generado" : "Reporte RAG en curso",
+    t("analisis.pipeline.obsValidas", { n: serie.time.length, banda: configuracion.banda }),
+    t("analisis.pipeline.faltantes", { n: resultado.n_descartados_faltantes }),
+    t("analisis.pipeline.ruido", { n: descartadosRuido }),
+    t("analisis.pipeline.lomb"),
+    t("analisis.pipeline.amplitud"),
+    cargaReporte === "listo" ? t("analisis.pipeline.reporteListo") : t("analisis.pipeline.reporteEnCurso"),
   ];
 
   const textoBotonGuardar = {
-    "sin-guardar": "Guardar en historial",
-    guardando: "Guardando…",
-    guardado: "Guardado",
-    error: "Reintentar guardado",
+    "sin-guardar": t("analisis.guardar.sinGuardar"),
+    guardando: t("analisis.guardar.guardando"),
+    guardado: t("analisis.guardar.guardado"),
+    error: t("analisis.guardar.error"),
   }[estadoGuardado];
 
   return (
@@ -137,10 +142,10 @@ export default function AnalysisView({
           <button
             onClick={() => setPrinting(true)}
             disabled={cargaReporte === "cargando"}
-            title={cargaReporte === "cargando" ? "Espera a que termine el reporte" : undefined}
+            title={cargaReporte === "cargando" ? t("analisis.esperaReporte") : undefined}
             className="text-sm font-medium text-astro-text border border-astro-border bg-astro-surface hover:border-astro-indigo/50 hover:text-astro-indigo px-4 py-2 rounded transition-all disabled:opacity-50"
           >
-            Exportar PDF
+            {t("analisis.exportarPdf")}
           </button>
           <button
             onClick={onSave}
@@ -161,7 +166,7 @@ export default function AnalysisView({
           </div>
         )}
 
-        <Section title="Pipeline de procesamiento" badge={`${pipeline.length} pasos`}>
+        <Section title={t("analisis.secciones.pipeline")} badge={t("analisis.secciones.pasos", { count: pipeline.length })}>
           <div className="flex flex-wrap gap-2">
             {pipeline.map((paso) => (
               <div key={paso} className="flex items-center gap-2 bg-astro-surface border border-astro-border rounded px-3 py-2 text-xs">
@@ -172,26 +177,34 @@ export default function AnalysisView({
           </div>
         </Section>
 
-        <Section title="Visualización" badge="Zoom disponible en la curva original">
+        <Section title={t("analisis.secciones.visualizacion")} badge={t("analisis.secciones.visualizacionBadge")}>
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
             <ChartCard
-              title="Curva de luz"
-              subtitle={`${puntos.length} obs. · ${configuracion.mapeo.time} vs. ${configuracion.mapeo.flux}`}
-              hint="Arrastra los tiradores inferiores para hacer zoom"
+              title={t("analisis.graficos.curvaLuz")}
+              subtitle={t("analisis.graficos.curvaLuzSub", {
+                n: puntos.length,
+                x: configuracion.mapeo.time,
+                y: configuracion.mapeo.flux,
+              })}
+              hint={t("analisis.graficos.curvaLuzHint")}
             >
               <LightCurveChart points={puntos} xLabel={configuracion.mapeo.time} yLabel={yLabel} invertir={invertir} />
             </ChartCard>
             <ChartCard
-              title="Curva en fase"
-              subtitle={periodo ? `P = ${periodo.toFixed(5)} d · dos ciclos (φ 0–2)` : "Sin período válido"}
-              hint="Fase 0 en el punto más brillante"
+              title={t("analisis.graficos.curvaFase")}
+              subtitle={
+                periodo
+                  ? t("analisis.graficos.curvaFaseSub", { periodo: periodo.toFixed(5) })
+                  : t("analisis.graficos.sinPeriodo")
+              }
+              hint={t("analisis.graficos.curvaFaseHint")}
             >
               <PhasedCurveChart points={fase} yLabel={yLabel} invertir={invertir} />
             </ChartCard>
           </div>
         </Section>
 
-        <Section title="Descriptores calculados" badge="Microservicio Python · feets">
+        <Section title={t("analisis.secciones.descriptores")} badge={t("analisis.secciones.descriptoresBadge")}>
           <DescriptorsPanel
             resultado={resultado}
             tipoBrillo={configuracion.tipoBrillo}
@@ -199,13 +212,14 @@ export default function AnalysisView({
           />
         </Section>
 
-        <Section title="Reporte generado por IA" badge="RAG con fuentes científicas · editable">
+        <Section title={t("analisis.secciones.reporte")} badge={t("analisis.secciones.reporteBadge")}>
           <ReportPanel
             carga={cargaReporte}
             reporte={reporte}
             error={errorReporte}
             onReintentar={pedirReporte}
             onCambio={onReporteChange}
+            idiomaActual={idioma}
           />
         </Section>
       </main>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 type Tema = "dark" | "light";
 
@@ -11,6 +12,7 @@ function temaInicial(): Tema {
 }
 
 export default function ThemeToggle() {
+  const { t } = useTranslation();
   const [tema, setTema] = useState<Tema>(temaInicial);
 
   useEffect(() => {
@@ -30,8 +32,8 @@ export default function ThemeToggle() {
     <button
       type="button"
       onClick={() => setTema(oscuro ? "light" : "dark")}
-      aria-label={oscuro ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
-      title={oscuro ? "Modo claro" : "Modo oscuro"}
+      aria-label={oscuro ? t("tema.aClaroAria") : t("tema.aOscuroAria")}
+      title={oscuro ? t("tema.claro") : t("tema.oscuro")}
       className="flex items-center gap-2 text-sm text-astro-muted border border-astro-border rounded px-3 py-1.5 hover:text-astro-text hover:border-astro-muted transition-colors"
     >
       {oscuro ? (
@@ -44,7 +46,7 @@ export default function ThemeToggle() {
           <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
         </svg>
       )}
-      {oscuro ? "Modo claro" : "Modo oscuro"}
+      {oscuro ? t("tema.claro") : t("tema.oscuro")}
     </button>
   );
 }

@@ -2,6 +2,7 @@
 // A diferencia de la versión de Figma, no muestra valores inventados:
 // los pasos describen lo que realmente hace el backend y los números
 // aparecen recién en la vista de resultados.
+import { useTranslation } from "react-i18next";
 import AppHeader from "./AppHeader";
 
 interface Props {
@@ -12,25 +13,16 @@ interface Props {
   onBack: () => void;
 }
 
+// Los textos se traducen en el render con t(`procesando.pasos.${clave}.label`)
 const PASOS = [
-  {
-    label: "Extracción de columnas y exclusión de valores faltantes",
-    detalle: (n: number) => `${n} observaciones válidas enviadas al servidor`,
-    hecho: true,
-  },
-  {
-    label: "Limpieza de ruido (feets)",
-    detalle: () => "Puntos con error > 3 × error medio o a más de 5σ de la media",
-    hecho: false,
-  },
-  {
-    label: "Periodograma Lomb-Scargle y descriptores (feets)",
-    detalle: () => "Período, probabilidad de falsa alarma, amplitud, armónicos de Fourier",
-    hecho: false,
-  },
-];
+  { clave: "extraccion", hecho: true },
+  { clave: "limpieza", hecho: false },
+  { clave: "lomb", hecho: false },
+] as const;
 
 export default function ProcessingScreen({ starName, nPuntos, error, onRetry, onBack }: Props) {
+  const { t } = useTranslation();
+
   return (
     <div className="min-h-screen flex flex-col">
       <AppHeader />
@@ -50,7 +42,7 @@ export default function ProcessingScreen({ starName, nPuntos, error, onRetry, on
               )}
             </div>
             <h2 className="text-lg font-semibold text-astro-text">
-              {error ? "No se pudo completar el análisis" : "Procesando curva de luz"}
+              {error ? t("procesando.tituloError") : t("procesando.titulo")}
             </h2>
             <p className="text-xs text-astro-muted font-mono mt-1 truncate max-w-xs mx-auto">{starName}</p>
           </div>
@@ -65,13 +57,13 @@ export default function ProcessingScreen({ starName, nPuntos, error, onRetry, on
                   onClick={onRetry}
                   className="bg-astro-accent text-astro-bg font-semibold text-sm px-4 py-2 rounded hover:brightness-110 transition-all"
                 >
-                  Reintentar
+                  {t("comun.reintentar")}
                 </button>
                 <button
                   onClick={onBack}
                   className="text-sm text-astro-muted border border-astro-border rounded px-4 py-2 hover:text-astro-text transition-colors"
                 >
-                  Volver al mapeo de columnas
+                  {t("procesando.volverMapeo")}
                 </button>
               </div>
             </div>
@@ -79,7 +71,7 @@ export default function ProcessingScreen({ starName, nPuntos, error, onRetry, on
             <div className="space-y-2">
               {PASOS.map((paso) => (
                 <div
-                  key={paso.label}
+                  key={paso.clave}
                   className={`flex items-start gap-3 rounded-lg p-3 bg-astro-surface ${paso.hecho ? "" : "opacity-70"}`}
                 >
                   <div
@@ -94,8 +86,10 @@ export default function ProcessingScreen({ starName, nPuntos, error, onRetry, on
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-astro-text">{paso.label}</p>
-                    <p className="text-xs text-astro-muted font-mono mt-0.5">{paso.detalle(nPuntos)}</p>
+                    <p className="text-sm text-astro-text">{t(`procesando.pasos.${paso.clave}.label`)}</p>
+                    <p className="text-xs text-astro-muted font-mono mt-0.5">
+                      {t(`procesando.pasos.${paso.clave}.detalle`, { count: nPuntos })}
+                    </p>
                   </div>
                 </div>
               ))}

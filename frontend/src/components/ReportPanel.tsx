@@ -2,6 +2,7 @@
 // Reemplaza la plantilla de Figma (generateParagraphs + classifyByPeriod), que
 // redactaba texto fijo y afirmaba cosas no calculadas (FAP < 0.001, calibración AAVSO).
 import { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { EstadoReporte, Reporte } from "../types";
 import TextoReporte from "./TextoReporte";
 
@@ -11,15 +12,18 @@ interface Props {
   error: string | null;
   onReintentar: () => void;
   onCambio: (reporte: Reporte) => void;
+  idiomaActual?: "es" | "en"; // para mostrar el idioma del reporte en la vista de análisis
 }
 
-const BADGE: Record<EstadoReporte, { label: string; cls: string }> = {
-  borrador: { label: "BORRADOR", cls: "text-astro-indigo bg-astro-indigo/10 border-astro-indigo/20" },
-  editado: { label: "EDITADO MANUALMENTE", cls: "text-astro-amber bg-astro-amber/10 border-astro-amber/20" },
-  final: { label: "VERSIÓN FINAL", cls: "text-astro-green bg-astro-green/10 border-astro-green/20" },
+// El texto se traduce en el render con t(`reporte.estados.${estado}`)
+const BADGE_CLS: Record<EstadoReporte, string> = {
+  borrador: "text-astro-indigo bg-astro-indigo/10 border-astro-indigo/20",
+  editado: "text-astro-amber bg-astro-amber/10 border-astro-amber/20",
+  final: "text-astro-green bg-astro-green/10 border-astro-green/20",
 };
 
-export default function ReportPanel({ carga, reporte, error, onReintentar, onCambio }: Props) {
+export default function ReportPanel({ carga, reporte, error, onReintentar, onCambio, idiomaActual }: Props) {
+  const { t } = useTranslation();
   const [editando, setEditando] = useState(false);
   const [borrador, setBorrador] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -32,7 +36,7 @@ export default function ReportPanel({ carga, reporte, error, onReintentar, onCam
           <path d="M10 2a8 8 0 018 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
         </svg>
         <p className="text-sm text-astro-muted">
-          Generando el reporte: se buscan fuentes en la literatura y se redacta a partir de los descriptores calculados.
+          {t("reporte.generando")}
         </p>
       </div>
     );
@@ -41,18 +45,16 @@ export default function ReportPanel({ carga, reporte, error, onReintentar, onCam
   if (carga === "error" || !reporte) {
     return (
       <div className="bg-astro-surface border border-astro-border rounded-lg p-6 space-y-3">
-        <p className="text-sm text-astro-red">{error ?? "No se pudo generar el reporte."}</p>
+        <p className="text-sm text-astro-red">{error ?? t("reporte.errorGenerico")}</p>
         <button
           onClick={onReintentar}
           className="text-xs font-medium text-astro-text border border-astro-border bg-astro-surface-2 hover:border-astro-accent/50 hover:text-astro-accent px-3 py-1.5 rounded transition-all"
         >
-          Reintentar
+          {t("comun.reintentar")}
         </button>
       </div>
     );
   }
-
-  const badge = BADGE[reporte.estado];
 
   const empezarEdicion = () => {
     setBorrador(reporte.texto);
@@ -69,25 +71,41 @@ export default function ReportPanel({ carga, reporte, error, onReintentar, onCam
     <div className="bg-astro-surface border border-astro-border rounded-lg p-6">
       <div className="flex items-start justify-between mb-5 gap-4 flex-wrap">
         <p className="text-xs text-astro-muted max-w-lg leading-relaxed">
-          Redactado por un modelo de lenguaje a partir de los descriptores calculados y de fuentes
-          científicas recuperadas. Revisa y edita antes de exportar.
+          {t("reporte.intro")}
         </p>
         <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
-          <span className={`text-xs font-mono px-2 py-1 rounded border ${badge.cls}`}>{badge.label}</span>
+          <span className={`text-xs font-mono px-2 py-1 rounded border ${BADGE_CLS[reporte.estado]}`}>
+            {t(`reporte.estados.${reporte.estado}`)}
+          </span>
           {!editando && (
             <button
               onClick={empezarEdicion}
               className="flex items-center gap-1.5 text-xs font-medium text-astro-text border border-astro-border bg-astro-surface-2 hover:border-astro-accent/50 hover:text-astro-accent px-3 py-1.5 rounded transition-all"
             >
-              Editar reporte
+              {t("reporte.editar")}
             </button>
           )}
         </div>
       </div>
 
+      {(reporte.idioma ?? "es") !== idiomaActual && (
+        <div className="mb-5 flex items-center justify-between gap-4 flex-wrap text-xs text-astro-indigo bg-astro-indigo/5 border border-astro-indigo/20 rounded px-3 py-2">
+          <span>{t("reporte.otroIdioma.aviso")}</span>
+          <button
+            onClick={() => {
+              if (reporte.estado !== "borrador" && !window.confirm(t("reporte.otroIdioma.confirmar"))) return;
+              onReintentar();
+            }}
+            className="font-medium border border-astro-indigo/40 rounded px-3 py-1 hover:bg-astro-indigo/10 transition-colors"
+          >
+            {t("reporte.otroIdioma.boton")}
+          </button>
+        </div>
+      )}
+
       {reporte.advertencias.length > 0 && (
         <div className="mb-5 text-xs text-astro-amber bg-astro-amber/5 border border-astro-amber/20 rounded px-3 py-2">
-          Citas sin respaldo en las fuentes recuperadas: {reporte.advertencias.join(", ")}. Verifícalas antes de usar el reporte.
+          {t("reporte.advertencias", { citas: reporte.advertencias.join(", ") })}
         </div>
       )}
 
@@ -95,7 +113,7 @@ export default function ReportPanel({ carga, reporte, error, onReintentar, onCam
         {editando ? (
           <div className="space-y-3">
             <p className="text-xs text-astro-muted">
-              Usa una línea en blanco para separar párrafos. Puedes usar **negrita** y títulos con #.
+              {t("reporte.ayudaEdicion")}
             </p>
             <textarea
               ref={textareaRef}
@@ -109,13 +127,13 @@ export default function ReportPanel({ carga, reporte, error, onReintentar, onCam
                 onClick={guardarEdicion}
                 className="bg-astro-accent text-astro-bg font-semibold text-xs px-4 py-2 rounded hover:brightness-110 transition-all"
               >
-                Guardar cambios
+                {t("reporte.guardarCambios")}
               </button>
               <button
                 onClick={() => setEditando(false)}
                 className="text-xs text-astro-muted hover:text-astro-text transition-colors"
               >
-                Cancelar
+                {t("comun.cancelar")}
               </button>
             </div>
           </div>
@@ -135,20 +153,20 @@ export default function ReportPanel({ carga, reporte, error, onReintentar, onCam
       <div className="mt-5 pt-4 border-t border-astro-border space-y-3">
         {reporte.fuentes.length > 0 && (
           <p className="text-xs text-astro-muted">
-            <span className="text-astro-text font-medium">Fuentes recuperadas: </span>
+            <span className="text-astro-text font-medium">{t("reporte.fuentes")} </span>
             <span className="font-mono">{reporte.fuentes.join(", ")}</span>
           </p>
         )}
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <p className="text-xs text-astro-muted">
-            Texto orientativo. Requiere validación de un astrónomo antes de publicarse.
+            {t("reporte.orientativo")}
           </p>
           {!editando && reporte.estado !== "final" && (
             <button
               onClick={() => onCambio({ ...reporte, estado: "final" })}
               className="text-xs text-astro-muted border border-astro-border rounded px-3 py-1.5 hover:border-astro-green/40 hover:text-astro-green transition-all"
             >
-              Marcar como versión final
+              {t("reporte.marcarFinal")}
             </button>
           )}
         </div>

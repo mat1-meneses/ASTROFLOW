@@ -1,3 +1,4 @@
+import { Trans, useTranslation } from "react-i18next";
 import type { ConfiguracionAnalisis, Reporte, ResultadoDescriptores } from "../types";
 import { filasDescriptores } from "../utils/filasDescriptores";
 import TextoReporte from "./TextoReporte";
@@ -15,7 +16,9 @@ interface Props {
  * El reporte se renderiza con TextoReporte (sin innerHTML).
  */
 export default function PrintView({ starName, resultado, configuracion, reporte, analysisDate }: Props) {
-  const rows = filasDescriptores(resultado, configuracion.tipoBrillo, configuracion.calibracion).map((f) => ({
+  const { t } = useTranslation();
+
+  const rows = filasDescriptores(resultado, configuracion.tipoBrillo, configuracion.calibracion, t).map((f) => ({
     param: f.parametro,
     value: f.unidad === "—" ? f.valor : `${f.valor} ${f.unidad}`,
     method: f.metodo,
@@ -44,19 +47,24 @@ export default function PrintView({ starName, resultado, configuracion, reporte,
         <div style={s.logo}>ASTROFLOW</div>
         <div style={s.meta}>
           <div style={s.starName}>{starName}</div>
-          <div>Análisis generado: {analysisDate}</div>
-          <div>Banda: {configuracion.banda} · Calibración: {configuracion.calibracion}</div>
-          <div style={{ marginTop: "2pt" }}>Prototipo v0.1-beta</div>
+          <div>{t("impresion.generado", { fecha: analysisDate })}</div>
+          <div>
+            {t("impresion.bandaCalibracion", {
+              banda: configuracion.banda,
+              calibracion: configuracion.calibracion,
+            })}
+          </div>
+          <div style={{ marginTop: "2pt" }}>{t("impresion.prototipo")}</div>
         </div>
       </div>
 
-      <div style={s.sectionTitle}>Descriptores calculados</div>
+      <div style={s.sectionTitle}>{t("impresion.descriptores")}</div>
       <table style={s.table}>
         <thead>
           <tr>
-            <th style={s.th}>Parámetro</th>
-            <th style={s.th}>Valor</th>
-            <th style={s.th}>Método</th>
+            <th style={s.th}>{t("descriptores.columnas.parametro")}</th>
+            <th style={s.th}>{t("descriptores.columnas.valor")}</th>
+            <th style={s.th}>{t("descriptores.columnas.metodo")}</th>
           </tr>
         </thead>
         <tbody>
@@ -70,7 +78,7 @@ export default function PrintView({ starName, resultado, configuracion, reporte,
         </tbody>
       </table>
 
-      <div style={s.sectionTitle}>Reporte narrativo</div>
+      <div style={s.sectionTitle}>{t("impresion.reporteNarrativo")}</div>
       <div style={s.report}>
         {reporte ? (
           <TextoReporte
@@ -81,23 +89,21 @@ export default function PrintView({ starName, resultado, configuracion, reporte,
             }}
           />
         ) : (
-          <p>El reporte narrativo no estaba disponible al exportar.</p>
+          <p>{t("impresion.sinReporte")}</p>
         )}
         {reporte && reporte.fuentes.length > 0 && (
           <p style={{ fontSize: "9pt", color: "#555", marginTop: "8pt" }}>
-            Fuentes recuperadas: {reporte.fuentes.join(", ")}
+            {t("impresion.fuentes", { fuentes: reporte.fuentes.join(", ") })}
           </p>
         )}
       </div>
 
       <div style={s.disclaimer}>
-        <strong>Aviso:</strong> Este texto es orientativo. La validación científica de los
-        resultados debe realizarse con un astrónomo experto antes de su publicación o uso
-        en investigación formal.
+        <Trans i18nKey="impresion.aviso" components={{ strong: <strong /> }} />
       </div>
 
       <div style={s.footer}>
-        Generado con ASTROFLOW v0.1-beta — plataforma de análisis de curvas de luz de estrellas variables
+        {t("impresion.pie")}
       </div>
     </div>
   );

@@ -1,10 +1,13 @@
-// Lado derecho del header: selector de tema + "Iniciar sesión" para invitados,
+// Lado derecho del header: selectores de idioma y tema + "Iniciar sesión" para invitados,
 // o "Mis análisis" + nombre + "Cerrar sesión" con sesión iniciada.
 import { Link, useLocation, useNavigate } from "react-router";
+import { useTranslation } from "react-i18next";
 import { useSesion } from "../context/SesionContext";
+import LanguageToggle from "./LanguageToggle";
 import ThemeToggle from "./ThemeToggle";
 
 export default function UserMenu() {
+  const { t } = useTranslation();
   const { usuario, cargando, cerrar } = useSesion();
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -20,14 +23,14 @@ export default function UserMenu() {
           to={`/login?volver=${encodeURIComponent(pathname)}`}
           className="text-sm font-medium text-astro-accent border border-astro-accent/40 rounded px-4 py-1.5 hover:bg-astro-accent/10 transition-colors"
         >
-          Iniciar sesión
+          {t("menu.iniciarSesion")}
         </Link>
       );
   } else {
     contenido = (
       <div className="flex items-center gap-4">
         <Link to="/panel" className="text-sm text-astro-muted hover:text-astro-text transition-colors">
-          Mis análisis
+          {t("menu.misAnalisis")}
         </Link>
         <span className="text-sm text-astro-text">{usuario.nombre}</span>
         <button
@@ -38,7 +41,7 @@ export default function UserMenu() {
           }}
           className="text-sm text-astro-muted border border-astro-border rounded px-3 py-1.5 hover:text-astro-text hover:border-astro-muted transition-colors"
         >
-          Cerrar sesión
+          {t("menu.cerrarSesion")}
         </button>
       </div>
     );
@@ -46,6 +49,7 @@ export default function UserMenu() {
 
   return (
     <div className="flex items-center gap-3">
+      <LanguageToggle />
       <ThemeToggle />
       {contenido}
     </div>

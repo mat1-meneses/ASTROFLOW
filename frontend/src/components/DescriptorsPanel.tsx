@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type { Calibracion, ResultadoDescriptores, TipoBrillo } from "../types";
 import { filasDescriptores } from "../utils/filasDescriptores";
 
@@ -7,20 +8,23 @@ interface Props {
   calibracion: Calibracion;
 }
 
+const COLUMNAS = ["parametro", "valor", "unidad", "metodo", "descripcion"] as const;
+
 export default function DescriptorsPanel({ resultado, tipoBrillo, calibracion }: Props) {
-  const filas = filasDescriptores(resultado, tipoBrillo, calibracion);
+  const { t } = useTranslation();
+  const filas = filasDescriptores(resultado, tipoBrillo, calibracion, t);
 
   return (
     <div className="overflow-x-auto border border-astro-border rounded-lg">
       <table className="w-full text-sm">
         <thead className="bg-astro-surface-2">
           <tr>
-            {["Parámetro", "Valor", "Unidad", "Método", "Descripción"].map((h) => (
+            {COLUMNAS.map((h) => (
               <th
                 key={h}
                 className="px-4 py-3 text-left text-xs font-medium text-astro-muted uppercase tracking-wider border-b border-astro-border whitespace-nowrap"
               >
-                {h}
+                {t(`descriptores.columnas.${h}`)}
               </th>
             ))}
           </tr>

@@ -1,6 +1,8 @@
 // Filas de la tabla de descriptores, compartidas por DescriptorsPanel y PrintView.
 // Solo se muestran valores que entrega el microservicio; nada se inventa aquí.
+// Los textos se traducen con la función t de i18next, que recibe como parámetro.
 
+import type { TFunction } from "i18next";
 import type { Calibracion, ResultadoDescriptores, TipoBrillo } from "../types";
 
 export interface FilaDescriptor {
@@ -23,106 +25,114 @@ function fmt(v: number | null | undefined, decimales: number): string {
 export function filasDescriptores(
   r: ResultadoDescriptores,
   tipo: TipoBrillo,
-  calibracion: Calibracion
+  calibracion: Calibracion,
+  t: TFunction
 ): FilaDescriptor[] {
   const d = r.descriptores;
   const der = r.derivados;
-  const unidad = tipo === "magnitud" ? "mag" : "flujo";
+  const unidad = tipo === "magnitud" ? "mag" : t("descriptores.unidades.flujo");
   const fap = der.prob_falsa_alarma;
+
+  // Atajo: t("descriptores.filas.<clave>.<campo>")
+  const f = (clave: string, campo: string, opciones?: Record<string, unknown>) =>
+    t(`descriptores.filas.${clave}.${campo}`, opciones);
+
+  const metodoLomb = t("descriptores.metodos.lomb");
+  const metodoFourier = t("descriptores.metodos.fourier");
 
   const filas: FilaDescriptor[] = [
     {
-      parametro: "Período",
+      parametro: f("periodo", "parametro"),
       valor: fmt(der.periodo_principal_dias, 5),
-      unidad: "días",
-      metodo: "Lomb-Scargle (feets)",
-      descripcion: "Período dominante del periodograma",
+      unidad: t("descriptores.unidades.dias"),
+      metodo: metodoLomb,
+      descripcion: f("periodo", "descripcion"),
     },
     {
-      parametro: "Probabilidad de falsa alarma",
+      parametro: f("fap", "parametro"),
       valor: fap === null ? "—" : fap.toExponential(2),
       unidad: "—",
-      metodo: "Lomb-Scargle (feets)",
-      descripcion: "Probabilidad de que el pico del periodograma sea ruido; cercana a 0 indica un período significativo",
+      metodo: metodoLomb,
+      descripcion: f("fap", "descripcion"),
     },
     {
-      parametro: "Semiamplitud",
+      parametro: f("semiamplitud", "parametro"),
       valor: fmt(der.amplitud_fats, 4),
       unidad,
-      metodo: "Fórmula FATS",
-      descripcion: "Mitad de la diferencia entre la mediana del 5 % más débil y la del 5 % más brillante",
+      metodo: t("descriptores.metodos.fats"),
+      descripcion: f("semiamplitud", "descripcion"),
     },
     {
-      parametro: tipo === "magnitud" ? "Magnitud media" : "Flujo medio",
+      parametro: tipo === "magnitud" ? f("media", "parametroMagnitud") : f("media", "parametroFlujo"),
       valor: fmt(primero(d.Mean), 4),
       unidad,
       metodo: "feets",
       descripcion:
         calibracion === "estandar"
-          ? "Media de la serie"
-          : "Media de la serie. Sin calibración estándar declarada, no equivale a una magnitud aparente",
+          ? f("media", "descripcion")
+          : f("media", "descripcionSinCalibracion"),
     },
     {
-      parametro: "Desviación estándar (σ)",
+      parametro: f("std", "parametro"),
       valor: fmt(primero(d.Std), 4),
       unidad,
       metodo: "feets",
-      descripcion: "Dispersión de la serie respecto a su media",
+      descripcion: f("std", "descripcion"),
     },
     {
-      parametro: "Asimetría",
+      parametro: f("asimetria", "parametro"),
       valor: fmt(primero(d.Skew), 3),
       unidad: "—",
       metodo: "feets",
-      descripcion: "Asimetría de la distribución de valores",
+      descripcion: f("asimetria", "descripcion"),
     },
     {
-      parametro: "Curtosis",
+      parametro: f("curtosis", "parametro"),
       valor: fmt(primero(d.SmallKurtosis), 3),
       unidad: "—",
       metodo: "feets",
-      descripcion: "Curtosis para muestras pequeñas",
+      descripcion: f("curtosis", "descripcion"),
     },
     {
       parametro: "R21",
       valor: fmt(der.R21, 3),
       unidad: "—",
-      metodo: "Armónicos de Fourier (feets)",
-      descripcion: "Amplitud del 2.º armónico respecto al fundamental",
+      metodo: metodoFourier,
+      descripcion: f("r21", "descripcion"),
     },
     {
       parametro: "R31",
       valor: fmt(der.R31, 3),
       unidad: "—",
-      metodo: "Armónicos de Fourier (feets)",
-      descripcion: "Amplitud del 3.er armónico respecto al fundamental",
+      metodo: metodoFourier,
+      descripcion: f("r31", "descripcion"),
     },
   ];
 
   if (d.StetsonK !== undefined) {
     filas.push({
-      parametro: "Índice K de Stetson",
+      parametro: f("stetsonK", "parametro"),
       valor: fmt(primero(d.StetsonK), 3),
       unidad: "—",
       metodo: "feets",
-      descripcion: "Robustez de la variabilidad considerando los errores fotométricos",
+      descripcion: f("stetsonK", "descripcion"),
     });
   }
 
   filas.push(
     {
-      parametro: "Observaciones usadas",
+      parametro: f("obsUsadas", "parametro"),
       valor: String(r.n_puntos_usados),
-      unidad: "puntos",
-      metodo: "Conteo",
-      descripcion: `De ${r.n_puntos_recibidos} recibidas, tras descartar valores faltantes y ruido`,
+      unidad: t("descriptores.unidades.puntos"),
+      metodo: t("descriptores.metodos.conteo"),
+      descripcion: f("obsUsadas", "descripcion", { recibidas: r.n_puntos_recibidos }),
     },
     {
-      parametro: "Puntos atípicos restantes",
+      parametro: f("atipicos", "parametro"),
       valor: String(der.n_atipicos_4sigma),
-      unidad: "puntos",
-      metodo: "Mediana y MAD",
-      descripcion: "Puntos a más de 4 sigmas robustas que permanecen en los datos analizados",
+      unidad: t("descriptores.unidades.puntos"),
+      metodo: t("descriptores.metodos.mad"),
+      descripcion: f("atipicos", "descripcion"),
     }
   );
 

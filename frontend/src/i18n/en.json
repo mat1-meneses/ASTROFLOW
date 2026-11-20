@@ -1,0 +1,273 @@
+{
+  "comun": {
+    "reintentar": "Retry",
+    "cancelar": "Cancel"
+  },
+  "menu": {
+    "iniciarSesion": "Sign in",
+    "misAnalisis": "My analyses",
+    "cerrarSesion": "Sign out"
+  },
+  "tema": {
+    "claro": "Light mode",
+    "oscuro": "Dark mode",
+    "aClaroAria": "Switch to light mode",
+    "aOscuroAria": "Switch to dark mode"
+  },
+  "carga": {
+    "titulo": "Upload light curve",
+    "volver": "Back to dashboard",
+    "descripcion": "Accepted formats: CSV, TXT, DAT, TSV and ASC. Column names can be in the first row or in the last comment before the data (as in MACHO); other lines starting with <code>#</code> are shown as metadata. In the next step you confirm which column is time, brightness and error.",
+    "soltar": "Drop the file here",
+    "arrastrar": "Drag a file or click to select",
+    "formatos": "CSV · TXT · DAT · TSV · ASC · max. 10 MB",
+    "separador": "or",
+    "errores": {
+      "formato": "Unsupported format. Use .csv, .txt, .dat, .tsv or .asc files",
+      "tamano": "The file exceeds 10 MB.",
+      "lectura": "Error reading the file."
+    },
+    "ejemplo": {
+      "usar": "Use example curve",
+      "cargando": "Loading example curve…",
+      "detalle": "MACHO 9.5482.957 · Large Magellanic Cloud · 532 obs. in R and B bands"
+    }
+  },
+  "columnas": {
+    "volver": "Back to upload",
+    "titulo": "Column mapping",
+    "descripcion": "Columns automatically detected for <code>{{estrella}}</code>. Correct any assignment if needed.",
+    "formatoDetectado": "Detected format:",
+    "formatos": {
+      "ogle": "OGLE (HJD / I_mag / err_I)",
+      "ogleGenerico": "Generic OGLE (hjd, mag, err)",
+      "macho": "MACHO (HJD · r/err_r · b/err_b)",
+      "aavso": "AAVSO (JD / Magnitude / Uncertainty)"
+    },
+    "notas": {
+      "machoBandaR": "MACHO: band R (r / err_r) is used as primary. You can switch to band B (b / err_b).",
+      "asignacionPosicional": "No recognizable names: columns were assigned by position (1=Time, 2=Flux, 3=Error)."
+    },
+    "sinEncabezado": "No column header in the file — automatic names were generated (Col1, Col2…).",
+    "centinelas": "Sentinel values detected (−99, NaN, etc.) in: {{columnas}} — they will be excluded from the analysis.",
+    "metadatos": "File metadata",
+    "lineas_one": "{{count}} line",
+    "lineas_other": "{{count}} lines",
+    "campos": {
+      "time": {
+        "label": "Time",
+        "hint": "HJD, BJD, MJD or days since epoch"
+      },
+      "flux": {
+        "label": "Magnitude / Flux",
+        "hint": "Magnitude (instrumental or calibrated) or flux"
+      },
+      "error": {
+        "label": "Error / Uncertainty",
+        "hint": "Photometric standard deviation (σ)"
+      }
+    },
+    "confianza": {
+      "high": "High confidence",
+      "medium": "Medium confidence",
+      "low": "Low confidence",
+      "none": "Not detected"
+    },
+    "seleccionar": "— Select column —",
+    "opcionCentinelas": "⚠ sentinels",
+    "modificado": "✎ Modified",
+    "autodetectado": "✓ Auto-detected",
+    "vistaPrevia": "Preview — {{mostradas}} of {{total}} rows · {{columnas}} columns",
+    "obsValidas_one": "{{count}} valid obs. after excluding sentinels",
+    "obsValidas_other": "{{count}} valid obs. after excluding sentinels",
+    "valorCentinela": "Sentinel value — no data",
+    "sinDato": "— no data",
+    "sinAsignar": "Unassigned columns (possible secondary bands) are not used in this analysis.",
+    "confirmar": "Confirm and analyze →",
+    "asignaTres": "Assign all three columns to continue.",
+    "deteccionAceptada": "Automatic detection accepted.",
+    "modificados_one": "{{count}} field modified manually.",
+    "modificados_other": "{{count}} fields modified manually."
+  },
+  "procesando": {
+    "titulo": "Processing light curve",
+    "tituloError": "The analysis could not be completed",
+    "volverMapeo": "Back to column mapping",
+    "pasos": {
+      "extraccion": {
+        "label": "Column extraction and removal of missing values",
+        "detalle_one": "{{count}} valid observation sent to the server",
+        "detalle_other": "{{count}} valid observations sent to the server"
+      },
+      "limpieza": {
+        "label": "Noise cleaning (feets)",
+        "detalle": "Points with error > 3 × mean error or more than 5σ from the mean"
+      },
+      "lomb": {
+        "label": "Lomb-Scargle periodogram and descriptors (feets)",
+        "detalle": "Period, false alarm probability, amplitude, Fourier harmonics"
+      }
+    }
+  },
+  "analisis": {
+    "magnitud": "Magnitude",
+    "flujo": "Flux",
+    "exportarPdf": "Export PDF",
+    "esperaReporte": "Wait for the report to finish",
+    "guardar": {
+      "sinGuardar": "Save to history",
+      "guardando": "Saving…",
+      "guardado": "Saved",
+      "error": "Retry saving"
+    },
+    "pipeline": {
+      "obsValidas": "{{n}} valid obs. in the file ({{banda}})",
+      "faltantes": "{{n}} missing values discarded on the server",
+      "ruido": "{{n}} points removed as noise (feets)",
+      "lomb": "Lomb-Scargle and descriptors (feets)",
+      "amplitud": "Amplitude with FATS formula",
+      "reporteListo": "RAG report generated",
+      "reporteEnCurso": "RAG report in progress"
+    },
+    "secciones": {
+      "pipeline": "Processing pipeline",
+      "pasos_one": "{{count}} step",
+      "pasos_other": "{{count}} steps",
+      "visualizacion": "Visualization",
+      "visualizacionBadge": "Zoom available on the original curve",
+      "descriptores": "Computed descriptors",
+      "descriptoresBadge": "Python microservice · feets",
+      "reporte": "AI-generated report",
+      "reporteBadge": "RAG with scientific sources · editable"
+    },
+    "graficos": {
+      "curvaLuz": "Light curve",
+      "curvaLuzSub": "{{n}} obs. · {{x}} vs. {{y}}",
+      "curvaLuzHint": "Drag the bottom handles to zoom",
+      "curvaFase": "Phase-folded curve",
+      "curvaFaseSub": "P = {{periodo}} d · two cycles (φ 0–2)",
+      "sinPeriodo": "No valid period",
+      "curvaFaseHint": "Phase 0 at the brightest point"
+    }
+  },
+  "descriptores": {
+    "columnas": {
+      "parametro": "Parameter",
+      "valor": "Value",
+      "unidad": "Unit",
+      "metodo": "Method",
+      "descripcion": "Description"
+    },
+    "unidades": {
+      "dias": "days",
+      "puntos": "points",
+      "flujo": "flux"
+    },
+    "metodos": {
+      "lomb": "Lomb-Scargle (feets)",
+      "fats": "FATS formula",
+      "fourier": "Fourier harmonics (feets)",
+      "conteo": "Count",
+      "mad": "Median and MAD"
+    },
+    "filas": {
+      "periodo": {
+        "parametro": "Period",
+        "descripcion": "Dominant period of the periodogram"
+      },
+      "fap": {
+        "parametro": "False alarm probability",
+        "descripcion": "Probability that the periodogram peak is noise; close to 0 indicates a significant period"
+      },
+      "semiamplitud": {
+        "parametro": "Semi-amplitude",
+        "descripcion": "Half the difference between the median of the faintest 5 % and the brightest 5 %"
+      },
+      "media": {
+        "parametroMagnitud": "Mean magnitude",
+        "parametroFlujo": "Mean flux",
+        "descripcion": "Mean of the series",
+        "descripcionSinCalibracion": "Mean of the series. Without a declared standard calibration, it is not equivalent to an apparent magnitude"
+      },
+      "std": {
+        "parametro": "Standard deviation (σ)",
+        "descripcion": "Dispersion of the series around its mean"
+      },
+      "asimetria": {
+        "parametro": "Skewness",
+        "descripcion": "Skewness of the value distribution"
+      },
+      "curtosis": {
+        "parametro": "Kurtosis",
+        "descripcion": "Kurtosis for small samples"
+      },
+      "r21": {
+        "descripcion": "Amplitude of the 2nd harmonic relative to the fundamental"
+      },
+      "r31": {
+        "descripcion": "Amplitude of the 3rd harmonic relative to the fundamental"
+      },
+      "stetsonK": {
+        "parametro": "Stetson K index",
+        "descripcion": "Robustness of the variability taking photometric errors into account"
+      },
+      "obsUsadas": {
+        "parametro": "Observations used",
+        "descripcion": "Out of {{recibidas}} received, after discarding missing values and noise"
+      },
+      "atipicos": {
+        "parametro": "Remaining outliers",
+        "descripcion": "Points beyond 4 robust sigmas that remain in the analyzed data"
+      }
+    }
+  },
+  "reporte": {
+    "generando": "Generating the report: searching the literature for sources and writing from the computed descriptors.",
+    "errorGenerico": "The report could not be generated.",
+    "intro": "Written by a language model from the computed descriptors and retrieved scientific sources. Review and edit before exporting.",
+    "estados": {
+      "borrador": "DRAFT",
+      "editado": "MANUALLY EDITED",
+      "final": "FINAL VERSION"
+    },
+    "editar": "Edit report",
+    "advertencias": "Citations not supported by the retrieved sources: {{citas}}. Verify them before using the report.",
+    "ayudaEdicion": "Use a blank line to separate paragraphs. You can use **bold** and headings with #.",
+    "guardarCambios": "Save changes",
+    "fuentes": "Retrieved sources:",
+    "orientativo": "Indicative text. Requires validation by an astronomer before publication.",
+    "marcarFinal": "Mark as final version"
+  },
+  "panel": {
+    "nuevaCurva": "Upload new light curve",
+    "titulo": "My analyses",
+    "descripcion": "Analyses saved to your account. Open one to see its charts, descriptors and report.",
+    "guardadas_one": "{{count}} saved curve",
+    "guardadas_other": "{{count}} saved curves",
+    "cargando": "Loading analyses…",
+    "observaciones": "{{n}} observations",
+    "periodo": "Period",
+    "semiamplitud": "Semi-amplitude",
+    "vacio": {
+      "titulo": "You don't have any saved analyses yet",
+      "descripcion": "Analyze a curve and use \"Save to history\" to make it appear here.",
+      "boton": "Upload your first light curve →"
+    }
+  },
+  "impresion": {
+    "generado": "Analysis generated: {{fecha}}",
+    "bandaCalibracion": "Band: {{banda}} · Calibration: {{calibracion}}",
+    "prototipo": "Prototype v0.1-beta",
+    "descriptores": "Computed descriptors",
+    "reporteNarrativo": "Narrative report",
+    "sinReporte": "The narrative report was not available at export time.",
+    "fuentes": "Retrieved sources: {{fuentes}}",
+    "aviso": "<strong>Notice:</strong> This text is indicative. Scientific validation of the results must be carried out by an expert astronomer before publication or use in formal research.",
+    "pie": "Generated with ASTROFLOW v0.1-beta — variable star light curve analysis platform"
+  },
+  "otroIdioma": {
+    "aviso": "This report was written in Spanish.",
+    "boton": "Regenerate in English",
+    "confirmar": "Regenerating the report will replace your edits. Continue?"
+  }
+}

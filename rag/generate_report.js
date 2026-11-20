@@ -5,11 +5,18 @@ const { generarReporte } = require('./ragFacade.js');
 // (feets, Lomb-Scargle, etc.), no de un objeto hardcodeado como este.
 async function main() {
   const descriptoresEjemplo = {
-    tipoProbable: 'RR Lyrae',
-    subtipo: 'RRab',
-    periodo: 0.523,
-    amplitud: 0.87,
-    magnitudAparentePromedio: 15.2,
+    periodo: 0.56479,
+    amplitud: 0.3115,
+    R21: 0.438,
+    R31: 0.329,
+    phi21: 4.126,
+    phi31: 2.432,
+    asimetria: -0.372,
+    curtosis: -0.876,
+    indiceKStetson: 0.74,
+    puntosUsados: 401,
+    puntosDescartados: 0,
+    notas: ['El archivo no declara la calibración fotométrica: la magnitud media no debe interpretarse como magnitud aparente.'],
   };
 
   console.log('Generando reporte para descriptores de ejemplo:');
@@ -30,7 +37,9 @@ async function main() {
     console.log('\n✓ Verificación automática: todas las referencias a catálogos citadas coinciden con el contexto.');
   }
 
-  console.log('\nFuentes usadas:', fuentesUsadas.join(', '));
+  console.log('\nReferencias:');
+  fuentesUsadas.forEach((r) => console.log(`  - ${r}`));
+
 }
 
 main().catch(err => {

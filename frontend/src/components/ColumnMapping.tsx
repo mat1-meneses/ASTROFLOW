@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Trans, useTranslation } from "react-i18next";
 import type { ColumnMapping, ParsedFile } from "../types";
 import { isSentinel } from "../data/parseFile";
 import { detectColumnMapping, type Confidence } from "../utils/detectColumns";
@@ -13,38 +14,32 @@ interface Props {
 
 type MappingKey = keyof ColumnMapping;
 
-const FIELD_META: Record<
-  MappingKey,
-  { label: string; hint: string; accentClass: string; tag: string }
-> = {
+// Los textos (label, hint) se traducen en el render con t(`columnas.campos.${key}.label`)
+const FIELD_META: Record<MappingKey, { accentClass: string; tag: string }> = {
   time: {
-    label: "Tiempo",
-    hint: "HJD, BJD, MJD o días desde época",
     accentClass: "text-astro-accent border-astro-accent/30 bg-astro-accent/5",
     tag: "T",
   },
   flux: {
-    label: "Magnitud / Flujo",
-    hint: "Magnitud (instrumental o calibrada) o flujo",
     accentClass: "text-astro-indigo border-astro-indigo/30 bg-astro-indigo/5",
     tag: "F",
   },
   error: {
-    label: "Error / Incertidumbre",
-    hint: "Desviación estándar fotométrica (σ)",
     accentClass: "text-astro-green border-astro-green/30 bg-astro-green/5",
     tag: "σ",
   },
 };
 
-const CONFIDENCE_LABEL: Record<Confidence, { text: string; cls: string }> = {
-  high: { text: "Alta confianza", cls: "text-astro-green bg-astro-green/10 border-astro-green/20" },
-  medium: { text: "Confianza media", cls: "text-astro-amber bg-astro-amber/10 border-astro-amber/20" },
-  low: { text: "Baja confianza", cls: "text-astro-muted bg-astro-surface-2 border-astro-border" },
-  none: { text: "No detectada", cls: "text-astro-red bg-astro-red/10 border-astro-red/20" },
+// El texto se traduce en el render con t(`columnas.confianza.${conf}`)
+const CONFIDENCE_CLS: Record<Confidence, string> = {
+  high: "text-astro-green bg-astro-green/10 border-astro-green/20",
+  medium: "text-astro-amber bg-astro-amber/10 border-astro-amber/20",
+  low: "text-astro-muted bg-astro-surface-2 border-astro-border",
+  none: "text-astro-red bg-astro-red/10 border-astro-red/20",
 };
 
 export default function ColumnMappingStep({ parsedFile, starName, onConfirm, onBack }: Props) {
+  const { t } = useTranslation();
   const { headers, rows, metadata, headerSource, sentinelColumns } = parsedFile;
 
   const detection = useMemo(
@@ -64,9 +59,9 @@ export default function ColumnMappingStep({ parsedFile, starName, onConfirm, onB
 
   const previewRows = rows.slice(0, 7);
   const validCount = rows.filter((r) => {
-    const t = r[mapping.time ?? ""];
-    const f = r[mapping.flux ?? ""];
-    return t && f && !isSentinel(t) && !isSentinel(f);
+    const tv = r[mapping.time ?? ""];
+    const fv = r[mapping.flux ?? ""];
+    return tv && fv && !isSentinel(tv) && !isSentinel(fv);
   }).length;
 
   const handleChange = (key: MappingKey, value: string) => {
@@ -97,15 +92,17 @@ export default function ColumnMappingStep({ parsedFile, starName, onConfirm, onB
             <path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="1.5"
               strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          Volver a carga
+          {t("columnas.volver")}
         </button>
 
         <div className="mb-6">
-          <h1 className="text-2xl font-semibold text-astro-text mb-1">Mapeo de columnas</h1>
+          <h1 className="text-2xl font-semibold text-astro-text mb-1">{t("columnas.titulo")}</h1>
           <p className="text-sm text-astro-muted">
-            Columnas detectadas automáticamente para{" "}
-            <span className="font-mono text-astro-text">{starName}</span>.
-            Corrige cualquier asignación si es necesario.
+            <Trans
+              i18nKey="columnas.descripcion"
+              values={{ estrella: starName }}
+              components={{ code: <span className="font-mono text-astro-text" /> }}
+            />
           </p>
         </div>
 
@@ -120,20 +117,19 @@ export default function ColumnMappingStep({ parsedFile, starName, onConfirm, onB
             <div className="text-xs text-astro-muted space-y-0.5">
               {detection.formatHint && (
                 <p>
-                  <span className="text-astro-text font-medium">Formato detectado: </span>
-                  {detection.formatHint}
+                  <span className="text-astro-text font-medium">{t("columnas.formatoDetectado")} </span>
+                  {t(`columnas.formatos.${detection.formatHint}`)}
                 </p>
               )}
               {headerSource === "generated" && (
-                <p>Sin encabezado de columnas en el archivo — se generaron nombres automáticos (Col1, Col2…).</p>
+                <p>{t("columnas.sinEncabezado")}</p>
               )}
-              {detection.notes.filter((n) => !n.startsWith("Formato")).map((n, i) => (
-                <p key={i}>{n}</p>
+              {detection.notes.map((n) => (
+                <p key={n}>{t(`columnas.notas.${n}`)}</p>
               ))}
               {sentinelColumns.size > 0 && (
                 <p className="text-astro-amber">
-                  Valores centinela detectados (−99, NaN, etc.) en:{" "}
-                  {[...sentinelColumns].join(", ")} — se excluirán del análisis.
+                  {t("columnas.centinelas", { columnas: [...sentinelColumns].join(", ") })}
                 </p>
               )}
             </div>
@@ -155,10 +151,10 @@ export default function ColumnMappingStep({ parsedFile, starName, onConfirm, onB
                   <rect x="1" y="8.8" width="8.5" height="1.2" rx="0.6" fill="currentColor" />
                 </svg>
                 <span className="text-xs font-medium text-astro-text">
-                  Metadatos del archivo
+                  {t("columnas.metadatos")}
                 </span>
                 <span className="text-xs font-mono text-astro-muted">
-                  {metadata.length} línea{metadata.length !== 1 ? "s" : ""}
+                  {t("columnas.lineas", { count: metadata.length })}
                 </span>
               </div>
               <svg
@@ -186,10 +182,9 @@ export default function ColumnMappingStep({ parsedFile, starName, onConfirm, onB
           {(["time", "flux", "error"] as MappingKey[]).map((key) => {
             const meta = FIELD_META[key];
             const selected = mapping[key];
-            const conf = overridden.has(key)
+            const conf: Confidence = overridden.has(key)
               ? selected ? "high" : "none"
               : detection.confidence[key];
-            const confLabel = CONFIDENCE_LABEL[conf];
 
             return (
               <div key={key} className="bg-astro-surface border border-astro-border rounded-lg p-4">
@@ -199,15 +194,15 @@ export default function ColumnMappingStep({ parsedFile, starName, onConfirm, onB
                       {meta.tag}
                     </span>
                     <span className="text-xs font-semibold text-astro-text uppercase tracking-wider">
-                      {meta.label}
+                      {t(`columnas.campos.${key}.label`)}
                     </span>
                   </div>
-                  <span className={`text-xs font-mono px-2 py-0.5 rounded border ${confLabel.cls}`}>
-                    {confLabel.text}
+                  <span className={`text-xs font-mono px-2 py-0.5 rounded border ${CONFIDENCE_CLS[conf]}`}>
+                    {t(`columnas.confianza.${conf}`)}
                   </span>
                 </div>
 
-                <p className="text-xs text-astro-muted mb-3">{meta.hint}</p>
+                <p className="text-xs text-astro-muted mb-3">{t(`columnas.campos.${key}.hint`)}</p>
 
                 <select
                   value={selected ?? ""}
@@ -221,7 +216,7 @@ export default function ColumnMappingStep({ parsedFile, starName, onConfirm, onB
                     }
                   `}
                 >
-                  <option value="">— Seleccionar columna —</option>
+                  <option value="">{t("columnas.seleccionar")}</option>
                   {headers.map((col) => {
                     const takenBy = columnRole(col);
                     const isMine = takenBy === key;
@@ -230,7 +225,7 @@ export default function ColumnMappingStep({ parsedFile, starName, onConfirm, onB
                       <option key={col} value={col} disabled={disabled}>
                         {col}
                         {isMine ? " ✓" : disabled && takenBy ? ` (→ ${FIELD_META[takenBy].tag})` : ""}
-                        {sentinelColumns.has(col) ? " ⚠ centinelas" : ""}
+                        {sentinelColumns.has(col) ? ` ${t("columnas.opcionCentinelas")}` : ""}
                       </option>
                     );
                   })}
@@ -238,7 +233,7 @@ export default function ColumnMappingStep({ parsedFile, starName, onConfirm, onB
 
                 {selected && (
                   <p className={`mt-2 text-xs font-mono ${meta.accentClass.split(" ")[0]}`}>
-                    {overridden.has(key) ? "✎ Modificado" : "✓ Auto-detectado"}: {selected}
+                    {overridden.has(key) ? t("columnas.modificado") : t("columnas.autodetectado")}: {selected}
                   </p>
                 )}
               </div>
@@ -250,11 +245,15 @@ export default function ColumnMappingStep({ parsedFile, starName, onConfirm, onB
         <div className="mb-8">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-xs font-medium text-astro-muted uppercase tracking-wider">
-              Vista previa — {previewRows.length} de {rows.length} filas · {headers.length} columnas
+              {t("columnas.vistaPrevia", {
+                mostradas: previewRows.length,
+                total: rows.length,
+                columnas: headers.length,
+              })}
             </h2>
             {mapping.time && mapping.flux && (
               <span className="text-xs font-mono text-astro-muted">
-                {validCount} obs. válidas tras excluir centinelas
+                {t("columnas.obsValidas", { count: validCount })}
               </span>
             )}
           </div>
@@ -303,9 +302,9 @@ export default function ColumnMappingStep({ parsedFile, starName, onConfirm, onB
                               ? `${FIELD_META[role].accentClass.split(" ")[0]} opacity-80`
                               : "text-astro-text/50"
                           }`}
-                          title={isMissing ? "Valor centinela — sin dato" : undefined}
+                          title={isMissing ? t("columnas.valorCentinela") : undefined}
                         >
-                          {isMissing ? "— sin dato" : val}
+                          {isMissing ? t("columnas.sinDato") : val}
                         </td>
                       );
                     })}
@@ -317,7 +316,7 @@ export default function ColumnMappingStep({ parsedFile, starName, onConfirm, onB
 
           {headers.length > 3 && (
             <p className="mt-2 text-xs text-astro-muted">
-              Las columnas sin asignar (posibles bandas secundarias) no se usan en este análisis.
+              {t("columnas.sinAsignar")}
             </p>
           )}
         </div>
@@ -334,16 +333,16 @@ export default function ColumnMappingStep({ parsedFile, starName, onConfirm, onB
               }
             `}
           >
-            Confirmar y analizar →
+            {t("columnas.confirmar")}
           </button>
           {!isValid && (
-            <p className="text-xs text-astro-muted">Asigna las tres columnas para continuar.</p>
+            <p className="text-xs text-astro-muted">{t("columnas.asignaTres")}</p>
           )}
           {isValid && (
             <p className="text-xs text-astro-muted">
               {overridden.size === 0
-                ? "Detección automática aceptada."
-                : `${overridden.size} campo${overridden.size > 1 ? "s" : ""} modificado${overridden.size > 1 ? "s" : ""} manualmente.`}
+                ? t("columnas.deteccionAceptada")
+                : t("columnas.modificados", { count: overridden.size })}
             </p>
           )}
         </div>

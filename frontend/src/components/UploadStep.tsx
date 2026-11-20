@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import AppHeader from "./AppHeader";
+import { Trans, useTranslation } from "react-i18next";
 
 interface Props {
   onFileLoaded: (content: string, name: string) => void;
@@ -14,6 +15,7 @@ interface Props {
 const MAX_BYTES = 10 * 1024 * 1024;
 
 export default function UploadStep({ onFileLoaded, onUseExample, onBack, cargandoEjemplo, errorExterno }: Props) {
+  const { t } = useTranslation();
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -21,18 +23,18 @@ export default function UploadStep({ onFileLoaded, onUseExample, onBack, cargand
   const readFile = (file: File) => {
     setError(null);
     if (!file.name.match(/\.(csv|txt|dat|tsv|asc)$/i)) {
-      setError("Formato no soportado. Use archivos .csv, .txt, .dat, .tsv o .asc");
+      setError("carga.errores.formato");
       return;
     }
     if (file.size > MAX_BYTES) {
-      setError("El archivo supera los 10 MB.");
+      setError("carga.errores.tamano");
       return;
     }
     const reader = new FileReader();
     reader.onload = (e) => {
       onFileLoaded(e.target?.result as string, file.name);
     };
-    reader.onerror = () => setError("Error al leer el archivo.");
+    reader.onerror = () => setError("carga.errores.lectura");
     reader.readAsText(file);
   };
 
@@ -67,21 +69,19 @@ export default function UploadStep({ onFileLoaded, onUseExample, onBack, cargand
                 strokeLinejoin="round"
               />
             </svg>
-            Volver al panel
+            {t("carga.volver")}
           </button>
           )}
 
           <div className="mb-8">
             <h1 className="text-2xl font-semibold text-astro-text mb-2">
-              Cargar curva de luz
+              {t("carga.titulo")}
             </h1>
             <p className="text-sm text-astro-muted leading-relaxed">
-              Formatos aceptados: CSV, TXT, DAT, TSV y ASC. Los nombres de las
-              columnas pueden venir en la primera fila o en el último comentario
-              antes de los datos (como en MACHO); las demás líneas que comienzan
-              con <span className="font-mono text-astro-text">#</span> se
-              muestran como metadatos. En el paso siguiente confirmas qué
-              columna es el tiempo, el brillo y el error.
+              <Trans
+                i18nKey="carga.descripcion"
+                components={{ code: <span className="font-mono text-astro-text" /> }}
+              />
             </p>
           </div>
 
@@ -132,12 +132,10 @@ export default function UploadStep({ onFileLoaded, onUseExample, onBack, cargand
               </svg>
             </div>
             <p className="text-sm font-medium text-astro-text">
-              {dragging
-                ? "Suelta el archivo aquí"
-                : "Arrastra un archivo o haz clic para seleccionar"}
+              {dragging ? t("carga.soltar") : t("carga.arrastrar")}
             </p>
             <p className="text-xs text-astro-muted mt-2">
-              CSV · TXT · DAT · TSV · ASC · máx. 10 MB
+              {t("carga.formatos")}
             </p>
           </div>
 
@@ -147,13 +145,13 @@ export default function UploadStep({ onFileLoaded, onUseExample, onBack, cargand
                 <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1.2" />
                 <path d="M7 4v3M7 9.5v.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
               </svg>
-              {error ?? errorExterno}
+              {error ? t(error) : errorExterno}
             </div>
           )}
 
           <div className="mt-6 flex items-center gap-4">
             <div className="flex-1 h-px bg-astro-border" />
-            <span className="text-xs text-astro-muted font-mono">o</span>
+            <span className="text-xs text-astro-muted font-mono">{t("carga.separador")}</span>
             <div className="flex-1 h-px bg-astro-border" />
           </div>
 
@@ -164,10 +162,10 @@ export default function UploadStep({ onFileLoaded, onUseExample, onBack, cargand
           >
             <div>
               <p className="text-sm font-medium text-astro-text group-hover:text-astro-accent transition-colors">
-                {cargandoEjemplo ? "Cargando curva de ejemplo…" : "Usar curva de ejemplo"}
+                {cargandoEjemplo ? t("carga.ejemplo.cargando") : t("carga.ejemplo.usar")}
               </p>
               <p className="text-xs text-astro-muted mt-0.5">
-                MACHO 9.5482.957 · Gran Nube de Magallanes · 532 obs. en bandas R y B
+                {t("carga.ejemplo.detalle")}
               </p>
             </div>
             <svg

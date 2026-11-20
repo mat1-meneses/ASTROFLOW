@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type { ResumenAnalisis } from "../types";
 import { StarIcon } from "./AppHeader";
 import UserMenu from "./UserMenu";
@@ -11,6 +12,8 @@ interface Props {
 }
 
 export default function Dashboard({ history, cargando, error, onNewCurve, onLoadCurve }: Props) {
+  const { t } = useTranslation();
+
   return (
     <div className="min-h-screen flex flex-col">
       <header className="border-b border-astro-border px-8 py-4 flex items-center justify-between">
@@ -37,7 +40,7 @@ export default function Dashboard({ history, cargando, error, onNewCurve, onLoad
               strokeLinecap="round"
             />
           </svg>
-          Cargar nueva curva de luz
+          {t("panel.nuevaCurva")}
         </button>
         </div>
       </header>
@@ -46,23 +49,21 @@ export default function Dashboard({ history, cargando, error, onNewCurve, onLoad
         <div className="mb-8 flex items-end justify-between">
           <div>
             <h1 className="text-2xl font-semibold text-astro-text mb-1">
-              Mis análisis
+              {t("panel.titulo")}
             </h1>
             <p className="text-sm text-astro-muted">
-              Análisis guardados en tu cuenta. Abre uno para ver sus gráficos,
-              descriptores y reporte.
+              {t("panel.descripcion")}
             </p>
           </div>
           {history.length > 0 && (
             <span className="font-mono text-xs text-astro-muted">
-              {history.length} curva{history.length !== 1 ? "s" : ""} guardada
-              {history.length !== 1 ? "s" : ""}
+              {t("panel.guardadas", { count: history.length })}
             </span>
           )}
         </div>
 
         {cargando ? (
-          <p className="text-sm text-astro-muted">Cargando análisis…</p>
+          <p className="text-sm text-astro-muted">{t("panel.cargando")}</p>
         ) : error ? (
           <p className="text-sm text-astro-red">{error}</p>
         ) : history.length === 0 ? (
@@ -84,6 +85,8 @@ export default function Dashboard({ history, cargando, error, onNewCurve, onLoad
 }
 
 function EmptyState({ onNewCurve }: { onNewCurve: () => void }) {
+  const { t } = useTranslation();
+
   return (
     <div className="border border-dashed border-astro-border rounded-lg p-16 text-center">
       <div className="mx-auto w-14 h-14 mb-5 opacity-20">
@@ -99,16 +102,16 @@ function EmptyState({ onNewCurve }: { onNewCurve: () => void }) {
         </svg>
       </div>
       <p className="text-astro-text font-medium mb-1">
-        Aún no tienes análisis guardados
+        {t("panel.vacio.titulo")}
       </p>
       <p className="text-astro-muted text-sm mb-6 max-w-xs mx-auto">
-        Analiza una curva y usa "Guardar en historial" para que aparezca aquí.
+        {t("panel.vacio.descripcion")}
       </p>
       <button
         onClick={onNewCurve}
         className="text-astro-accent text-sm font-medium hover:underline underline-offset-2"
       >
-        Cargar primera curva de luz →
+        {t("panel.vacio.boton")}
       </button>
     </div>
   );
@@ -121,7 +124,10 @@ function CurveCard({
   curve: ResumenAnalisis;
   onLoad: () => void;
 }) {
-  const fecha = new Date(curve.creadoEn).toLocaleString("es-CL", {
+  const { t, i18n } = useTranslation();
+  const locale = i18n.resolvedLanguage === "en" ? "en-US" : "es-CL";
+
+  const fecha = new Date(curve.creadoEn).toLocaleString(locale, {
     day: "numeric",
     month: "short",
     year: "numeric",
@@ -141,12 +147,12 @@ function CurveCard({
             {curve.nombre}
           </p>
           <p className="text-xs text-astro-muted mt-1 font-mono">
-            {fecha} · {curve.nPuntos ?? "—"} observaciones
+            {fecha} · {t("panel.observaciones", { n: curve.nPuntos ?? "—" })}
           </p>
         </div>
         <div className="flex gap-5 flex-shrink-0">
-          <StatCell label="Período" value={`${fmt(curve.periodo, 4)} d`} />
-          <StatCell label="Semiamplitud" value={fmt(curve.amplitud, 3)} />
+          <StatCell label={t("panel.periodo")} value={`${fmt(curve.periodo, 4)} d`} />
+          <StatCell label={t("panel.semiamplitud")} value={fmt(curve.amplitud, 3)} />
           <StatCell label="R21" value={fmt(curve.R21, 3)} />
         </div>
       </div>

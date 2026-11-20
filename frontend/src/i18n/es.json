@@ -1,0 +1,274 @@
+{
+  "comun": {
+    "reintentar": "Reintentar",
+    "cancelar": "Cancelar"
+  },
+  "menu": {
+    "iniciarSesion": "Iniciar sesión",
+    "misAnalisis": "Mis análisis",
+    "cerrarSesion": "Cerrar sesión"
+  },
+  "tema": {
+    "claro": "Modo claro",
+    "oscuro": "Modo oscuro",
+    "aClaroAria": "Cambiar a modo claro",
+    "aOscuroAria": "Cambiar a modo oscuro"
+  },
+  "carga": {
+    "titulo": "Cargar curva de luz",
+    "volver": "Volver al panel",
+    "descripcion": "Formatos aceptados: CSV, TXT, DAT, TSV y ASC. Los nombres de las columnas pueden venir en la primera fila o en el último comentario antes de los datos (como en MACHO); las demás líneas que comienzan con <code>#</code> se muestran como metadatos. En el paso siguiente confirmas qué columna es el tiempo, el brillo y el error.",
+    "soltar": "Suelta el archivo aquí",
+    "arrastrar": "Arrastra un archivo o haz clic para seleccionar",
+    "formatos": "CSV · TXT · DAT · TSV · ASC · máx. 10 MB",
+    "separador": "o",
+    "errores": {
+      "formato": "Formato no soportado. Use archivos .csv, .txt, .dat, .tsv o .asc",
+      "tamano": "El archivo supera los 10 MB.",
+      "lectura": "Error al leer el archivo."
+    },
+    "ejemplo": {
+      "usar": "Usar curva de ejemplo",
+      "cargando": "Cargando curva de ejemplo…",
+      "detalle": "MACHO 9.5482.957 · Gran Nube de Magallanes · 532 obs. en bandas R y B"
+    }
+  },
+  "columnas": {
+    "volver": "Volver a carga",
+    "titulo": "Mapeo de columnas",
+    "descripcion": "Columnas detectadas automáticamente para <code>{{estrella}}</code>. Corrige cualquier asignación si es necesario.",
+    "formatoDetectado": "Formato detectado:",
+    "formatos": {
+      "ogle": "OGLE (HJD / I_mag / err_I)",
+      "ogleGenerico": "OGLE genérico (hjd, mag, err)",
+      "macho": "MACHO (HJD · r/err_r · b/err_b)",
+      "aavso": "AAVSO (JD / Magnitude / Uncertainty)"
+    },
+    "notas": {
+      "machoBandaR": "MACHO: se usa la banda R (r / err_r) como primaria. Puedes cambiar a la banda B (b / err_b).",
+      "asignacionPosicional": "Sin nombres reconocibles: se asignaron columnas por posición (1=Tiempo, 2=Flujo, 3=Error)."
+    },
+    "sinEncabezado": "Sin encabezado de columnas en el archivo — se generaron nombres automáticos (Col1, Col2…).",
+    "centinelas": "Valores centinela detectados (−99, NaN, etc.) en: {{columnas}} — se excluirán del análisis.",
+    "metadatos": "Metadatos del archivo",
+    "lineas_one": "{{count}} línea",
+    "lineas_other": "{{count}} líneas",
+    "campos": {
+      "time": {
+        "label": "Tiempo",
+        "hint": "HJD, BJD, MJD o días desde época"
+      },
+      "flux": {
+        "label": "Magnitud / Flujo",
+        "hint": "Magnitud (instrumental o calibrada) o flujo"
+      },
+      "error": {
+        "label": "Error / Incertidumbre",
+        "hint": "Desviación estándar fotométrica (σ)"
+      }
+    },
+    "confianza": {
+      "high": "Alta confianza",
+      "medium": "Confianza media",
+      "low": "Baja confianza",
+      "none": "No detectada"
+    },
+    "seleccionar": "— Seleccionar columna —",
+    "opcionCentinelas": "⚠ centinelas",
+    "modificado": "✎ Modificado",
+    "autodetectado": "✓ Auto-detectado",
+    "vistaPrevia": "Vista previa — {{mostradas}} de {{total}} filas · {{columnas}} columnas",
+    "obsValidas_one": "{{count}} obs. válida tras excluir centinelas",
+    "obsValidas_other": "{{count}} obs. válidas tras excluir centinelas",
+    "valorCentinela": "Valor centinela — sin dato",
+    "sinDato": "— sin dato",
+    "sinAsignar": "Las columnas sin asignar (posibles bandas secundarias) no se usan en este análisis.",
+    "confirmar": "Confirmar y analizar →",
+    "asignaTres": "Asigna las tres columnas para continuar.",
+    "deteccionAceptada": "Detección automática aceptada.",
+    "modificados_one": "{{count}} campo modificado manualmente.",
+    "modificados_other": "{{count}} campos modificados manualmente."
+  },
+  "procesando": {
+    "titulo": "Procesando curva de luz",
+    "tituloError": "No se pudo completar el análisis",
+    "volverMapeo": "Volver al mapeo de columnas",
+    "pasos": {
+      "extraccion": {
+        "label": "Extracción de columnas y exclusión de valores faltantes",
+        "detalle_one": "{{count}} observación válida enviada al servidor",
+        "detalle_other": "{{count}} observaciones válidas enviadas al servidor"
+      },
+      "limpieza": {
+        "label": "Limpieza de ruido (feets)",
+        "detalle": "Puntos con error > 3 × error medio o a más de 5σ de la media"
+      },
+      "lomb": {
+        "label": "Periodograma Lomb-Scargle y descriptores (feets)",
+        "detalle": "Período, probabilidad de falsa alarma, amplitud, armónicos de Fourier"
+      }
+    }
+  },
+  "analisis": {
+    "magnitud": "Magnitud",
+    "flujo": "Flujo",
+    "exportarPdf": "Exportar PDF",
+    "esperaReporte": "Espera a que termine el reporte",
+    "guardar": {
+      "sinGuardar": "Guardar en historial",
+      "guardando": "Guardando…",
+      "guardado": "Guardado",
+      "error": "Reintentar guardado"
+    },
+    "pipeline": {
+      "obsValidas": "{{n}} obs. válidas en el archivo ({{banda}})",
+      "faltantes": "{{n}} valores faltantes descartados en el servidor",
+      "ruido": "{{n}} puntos eliminados por ruido (feets)",
+      "lomb": "Lomb-Scargle y descriptores (feets)",
+      "amplitud": "Amplitud con fórmula FATS",
+      "reporteListo": "Reporte RAG generado",
+      "reporteEnCurso": "Reporte RAG en curso"
+    },
+    "secciones": {
+      "pipeline": "Pipeline de procesamiento",
+      "pasos_one": "{{count}} paso",
+      "pasos_other": "{{count}} pasos",
+      "visualizacion": "Visualización",
+      "visualizacionBadge": "Zoom disponible en la curva original",
+      "descriptores": "Descriptores calculados",
+      "descriptoresBadge": "Microservicio Python · feets",
+      "reporte": "Reporte generado por IA",
+      "reporteBadge": "RAG con fuentes científicas · editable"
+    },
+    "graficos": {
+      "curvaLuz": "Curva de luz",
+      "curvaLuzSub": "{{n}} obs. · {{x}} vs. {{y}}",
+      "curvaLuzHint": "Arrastra los tiradores inferiores para hacer zoom",
+      "curvaFase": "Curva en fase",
+      "curvaFaseSub": "P = {{periodo}} d · dos ciclos (φ 0–2)",
+      "sinPeriodo": "Sin período válido",
+      "curvaFaseHint": "Fase 0 en el punto más brillante"
+    }
+  },
+  "descriptores": {
+    "columnas": {
+      "parametro": "Parámetro",
+      "valor": "Valor",
+      "unidad": "Unidad",
+      "metodo": "Método",
+      "descripcion": "Descripción"
+    },
+    "unidades": {
+      "dias": "días",
+      "puntos": "puntos",
+      "flujo": "flujo"
+    },
+    "metodos": {
+      "lomb": "Lomb-Scargle (feets)",
+      "fats": "Fórmula FATS",
+      "fourier": "Armónicos de Fourier (feets)",
+      "conteo": "Conteo",
+      "mad": "Mediana y MAD"
+    },
+    "filas": {
+      "periodo": {
+        "parametro": "Período",
+        "descripcion": "Período dominante del periodograma"
+      },
+      "fap": {
+        "parametro": "Probabilidad de falsa alarma",
+        "descripcion": "Probabilidad de que el pico del periodograma sea ruido; cercana a 0 indica un período significativo"
+      },
+      "semiamplitud": {
+        "parametro": "Semiamplitud",
+        "descripcion": "Mitad de la diferencia entre la mediana del 5 % más débil y la del 5 % más brillante"
+      },
+      "media": {
+        "parametroMagnitud": "Magnitud media",
+        "parametroFlujo": "Flujo medio",
+        "descripcion": "Media de la serie",
+        "descripcionSinCalibracion": "Media de la serie. Sin calibración estándar declarada, no equivale a una magnitud aparente"
+      },
+      "std": {
+        "parametro": "Desviación estándar (σ)",
+        "descripcion": "Dispersión de la serie respecto a su media"
+      },
+      "asimetria": {
+        "parametro": "Asimetría",
+        "descripcion": "Asimetría de la distribución de valores"
+      },
+      "curtosis": {
+        "parametro": "Curtosis",
+        "descripcion": "Curtosis para muestras pequeñas"
+      },
+      "r21": {
+        "descripcion": "Amplitud del 2.º armónico respecto al fundamental"
+      },
+      "r31": {
+        "descripcion": "Amplitud del 3.er armónico respecto al fundamental"
+      },
+      "stetsonK": {
+        "parametro": "Índice K de Stetson",
+        "descripcion": "Robustez de la variabilidad considerando los errores fotométricos"
+      },
+      "obsUsadas": {
+        "parametro": "Observaciones usadas",
+        "descripcion": "De {{recibidas}} recibidas, tras descartar valores faltantes y ruido"
+      },
+      "atipicos": {
+        "parametro": "Puntos atípicos restantes",
+        "descripcion": "Puntos a más de 4 sigmas robustas que permanecen en los datos analizados"
+      }
+    }
+  },
+  "reporte": {
+    "generando": "Generando el reporte: se buscan fuentes en la literatura y se redacta a partir de los descriptores calculados.",
+    "errorGenerico": "No se pudo generar el reporte.",
+    "intro": "Redactado por un modelo de lenguaje a partir de los descriptores calculados y de fuentes científicas recuperadas. Revisa y edita antes de exportar.",
+    "estados": {
+      "borrador": "BORRADOR",
+      "editado": "EDITADO MANUALMENTE",
+      "final": "VERSIÓN FINAL"
+    },
+    "editar": "Editar reporte",
+    "advertencias": "Citas sin respaldo en las fuentes recuperadas: {{citas}}. Verifícalas antes de usar el reporte.",
+    "ayudaEdicion": "Usa una línea en blanco para separar párrafos. Puedes usar **negrita** y títulos con #.",
+    "guardarCambios": "Guardar cambios",
+    "fuentes": "Fuentes recuperadas:",
+    "orientativo": "Texto orientativo. Requiere validación de un astrónomo antes de publicarse.",
+    "marcarFinal": "Marcar como versión final"
+  },
+  "panel": {
+    "nuevaCurva": "Cargar nueva curva de luz",
+    "titulo": "Mis análisis",
+    "descripcion": "Análisis guardados en tu cuenta. Abre uno para ver sus gráficos, descriptores y reporte.",
+    "guardadas_one": "{{count}} curva guardada",
+    "guardadas_other": "{{count}} curvas guardadas",
+    "cargando": "Cargando análisis…",
+    "observaciones": "{{n}} observaciones",
+    "periodo": "Período",
+    "semiamplitud": "Semiamplitud",
+    "vacio": {
+      "titulo": "Aún no tienes análisis guardados",
+      "descripcion": "Analiza una curva y usa \"Guardar en historial\" para que aparezca aquí.",
+      "boton": "Cargar primera curva de luz →"
+    }
+  },
+  "impresion": {
+    "generado": "Análisis generado: {{fecha}}",
+    "bandaCalibracion": "Banda: {{banda}} · Calibración: {{calibracion}}",
+    "prototipo": "Prototipo v0.1-beta",
+    "descriptores": "Descriptores calculados",
+    "reporteNarrativo": "Reporte narrativo",
+    "sinReporte": "El reporte narrativo no estaba disponible al exportar.",
+    "fuentes": "Fuentes recuperadas: {{fuentes}}",
+    "aviso": "<strong>Aviso:</strong> Este texto es orientativo. La validación científica de los resultados debe realizarse con un astrónomo experto antes de su publicación o uso en investigación formal.",
+    "pie": "Generado con ASTROFLOW v0.1-beta — plataforma de análisis de curvas de luz de estrellas variables"
+  },
+  "otroIdioma": {
+    "aviso": "Este reporte fue redactado en inglés.",
+    "boton": "Regenerar en español",
+    "confirmar": "Regenerar el reporte reemplazará tus ediciones. ¿Continuar?"
+  }
+
+}

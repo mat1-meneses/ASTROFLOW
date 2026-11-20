@@ -3,6 +3,7 @@
 import type {
   Analisis,
   Calibracion,
+  Idioma,
   Reporte,
   ResultadoDescriptores,
   ResumenAnalisis,
@@ -36,12 +37,13 @@ export async function generarReporte(datos: {
   resultado: ResultadoDescriptores;
   banda: string;
   calibracion: Calibracion;
+  idioma?: Idioma;
 }): Promise<Reporte> {
   const r = await pedir<{ texto: string; fuentes: string[]; advertencias: string[] }>(
     "/api/analisis/reporte",
     { method: "POST", body: JSON.stringify(datos) }
   );
-  return { ...r, estado: "borrador" };
+  return { ...r, estado: "borrador", idioma: datos.idioma };
 }
 
 export function guardarAnalisis(analisis: Analisis) {

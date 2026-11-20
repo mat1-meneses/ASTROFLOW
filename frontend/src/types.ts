@@ -15,6 +15,8 @@ export interface ColumnMapping {
   flux: string;
   error: string;
 }
+// ─── Configuración de análisis idioma (navegador) ─────────────────────────────────
+export type Idioma = "es" | "en";
 
 export type TipoBrillo = "magnitud" | "flujo";
 export type Calibracion = "instrumental" | "estandar" | "desconocida";
@@ -74,6 +76,7 @@ export interface Reporte {
   fuentes: string[];
   advertencias: string[];
   estado: EstadoReporte;
+  idioma?: Idioma;
 }
 
 // ─── Análisis completo (en memoria o guardado) ───────────────────────────────

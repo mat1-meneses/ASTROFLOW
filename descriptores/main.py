@@ -4,6 +4,8 @@ import feets
 import feets.preprocess
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
+from fourier import analizar_fourier
+N_ARMONICOS = 4
 
 app = FastAPI(title="ASTROFLOW – Servicio de descriptores")
 
@@ -88,12 +90,30 @@ def calcular_descriptores(lc: CurvaDeLuz):
     mad = 1.4826 * np.median(np.abs(mag - med))
     a0 = d.get("Freq1_harmonics_amplitude_0")
 
+    periodo_ls = d["PeriodLS"][0] if d.get("PeriodLS") else None
+    fo = None
+    if periodo_ls:
+        try:
+            fo = analizar_fourier(
+                datos["time"], datos["magnitude"], datos.get("error"),
+                periodo_ls, N_ARMONICOS,
+            )
+        except Exception:
+            fo = None  # si falla, se usan los valores de feets
+
     derivados = {
-        "periodo_principal_dias": d["PeriodLS"][0] if d.get("PeriodLS") else None,
+        "periodo_principal_dias": fo["periodo"] if fo else periodo_ls,
+        "periodo_ls_dias": periodo_ls,
         "prob_falsa_alarma": d["Period_fit"][0] if d.get("Period_fit") else None,
         "amplitud_fats": amplitud_fats(mag),
-        "R21": d["Freq1_harmonics_amplitude_1"] / a0 if a0 else None,
-        "R31": d["Freq1_harmonics_amplitude_2"] / a0 if a0 else None,
+        "R21": fo["R21"] if fo else (d["Freq1_harmonics_amplitude_1"] / a0 if a0 else None),
+        "R31": fo["R31"] if fo else (d["Freq1_harmonics_amplitude_2"] / a0 if a0 else None),
+        "phi21": fo["phi21"] if fo else None,
+        "phi31": fo["phi31"] if fo else None,
+        "amplitud_pico_a_pico_fourier": fo["amplitud_pico_a_pico"] if fo else None,
+        # solo para comparar con OGLE; bórralos tras validar
+        "R21_feets": d["Freq1_harmonics_amplitude_1"] / a0 if a0 else None,
+        "R31_feets": d["Freq1_harmonics_amplitude_2"] / a0 if a0 else None,
         "n_atipicos_4sigma": int((np.abs(mag - med) > 4 * mad).sum()) if mad > 0 else 0,
     }
 

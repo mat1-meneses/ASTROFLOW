@@ -42,6 +42,9 @@ function adaptarParaReporte(respuesta, { calibracion = 'desconocida', banda = nu
     notas.push(`Tras la limpieza, ${d.n_atipicos_4sigma} punto(s) atípico(s) a más de 4 sigmas robustas permanece(n) en los datos analizados (no fue descartado).`);
   }
 
+  const f = respuesta.descriptores || {};
+  const num = (v) => (typeof v === 'number' && Number.isFinite(v) ? v : null);
+
   return {
     periodo: d.periodo_principal_dias,
     periodoHoras: d.periodo_principal_dias === null ? null : Number((d.periodo_principal_dias * 24).toFixed(2)),
@@ -49,6 +52,13 @@ function adaptarParaReporte(respuesta, { calibracion = 'desconocida', banda = nu
     amplitud: d.amplitud_fats,
     R21: d.R21,
     R31: d.R31,
+    phi21: d.phi21 ?? null,
+    phi31: d.phi31 ?? null,
+    asimetria: num(f.Skew),
+    curtosis: num(f.SmallKurtosis),
+    indiceKStetson: num(f.StetsonK),
+    magnitudMedia: num(f.Mean),
+    desviacionEstandar: num(f.Std),
     banda,
     puntosRecibidos: respuesta.n_puntos_recibidos,
     puntosUsados: respuesta.n_puntos_usados,

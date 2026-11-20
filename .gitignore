@@ -5,3 +5,4 @@ __pycache__/
 *.pyc
 dist/
 frontend-old/
+rag/papers/

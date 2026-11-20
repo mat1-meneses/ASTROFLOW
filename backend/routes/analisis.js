@@ -13,6 +13,8 @@ const { requerirSesion } = require('../middleware/auth');
 
 const router = express.Router();
 
+const IDIOMAS = ['es', 'en'];
+
 const MIN_PUNTOS = 30;
 const MAX_PUNTOS = 200000;
 const CALIBRACIONES = ['instrumental', 'estandar', 'desconocida'];
@@ -77,19 +79,22 @@ router.post('/descriptores', limiteDescriptores, async (req, res) => {
 });
 
 router.post('/reporte', limiteReporte, async (req, res) => {
-  const { resultado, banda = null, calibracion = 'desconocida' } = req.body || {};
+  const { resultado, banda = null, calibracion = 'desconocida', idioma = 'es' } = req.body || {};
   if (!resultado?.derivados) {
     return res.status(400).json({ error: 'Falta el resultado de descriptores.' });
   }
   if (!CALIBRACIONES.includes(calibracion)) {
     return res.status(400).json({ error: 'Calibración no válida.' });
   }
+  if (!IDIOMAS.includes(idioma)) {
+    return res.status(400).json({ error: 'Idioma no válido.' });
+  }
 
   const descriptores = adaptarParaReporte(resultado, {
     calibracion,
     banda: typeof banda === 'string' ? banda.slice(0, 40) : null,
   });
-  const { reporte, fuentesUsadas, advertencias } = await generarReporte(descriptores);
+  const { reporte, fuentesUsadas, advertencias } = await generarReporte(descriptores, { idioma });
   res.json({ texto: reporte, fuentes: fuentesUsadas, advertencias });
 });
 

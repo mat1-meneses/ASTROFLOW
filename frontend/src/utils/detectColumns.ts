@@ -2,11 +2,17 @@ import type { ColumnMapping, RawRow } from "../types";
 
 export type Confidence = "high" | "medium" | "low" | "none";
 
+/** Identificadores de formato; el texto visible se traduce en la interfaz. */
+export type FormatoId = "ogle" | "ogleGenerico" | "macho" | "aavso";
+
+/** Códigos de notas de detección; el texto visible se traduce en la interfaz. */
+export type NotaDeteccion = "machoBandaR" | "asignacionPosicional";
+
 export interface DetectionResult {
   mapping: Partial<ColumnMapping>;
   confidence: Record<keyof ColumnMapping, Confidence>;
-  notes: string[];
-  formatHint?: string;
+  notes: NotaDeteccion[];
+  formatHint?: FormatoId;
 }
 
 // Known column names by role, ordered by specificity
@@ -38,41 +44,36 @@ const ERROR_NAMES = [
 
 // Known survey format signatures
 const FORMAT_SIGNATURES: Array<{
-  name: string;
+  id: FormatoId;
   detect: (headers: string[]) => boolean;
-  mapping: Partial<ColumnMapping>;
 }> = [
   {
-    name: "OGLE (HJD / I_mag / err_I)",
+    id: "ogle",
     detect: (h) => h.some(c => /^hjd$/i.test(c)) && h.some(c => /^i_?mag$/i.test(c)),
-    mapping: {},
   },
   {
-    name: "OGLE genérico (hjd, mag, err)",
+    id: "ogleGenerico",
     detect: (h) => {
       const lc = h.map(s => s.toLowerCase());
       return lc.includes("hjd") && lc.includes("mag") && lc.includes("err");
     },
-    mapping: {},
   },
   {
-    name: "MACHO (HJD · r/err_r · b/err_b)",
+    id: "macho",
     detect: (h) => {
       const lc = h.map(s => s.toLowerCase());
       const tieneR = lc.includes("r") || lc.includes("rmag") || lc.includes("r_mag");
       const tieneErrR = lc.includes("err_r") || lc.includes("rerr") || lc.includes("r_err");
       return tieneR && tieneErrR;
     },
-    mapping: {},
   },
   {
-    name: "AAVSO (JD / Magnitude / Uncertainty)",
+    id: "aavso",
     detect: (h) => {
       const lc = h.map(s => s.toLowerCase());
       return lc.some(c => c.startsWith("jd")) && lc.includes("magnitude") &&
              lc.includes("uncertainty");
     },
-    mapping: {},
   },
 ];
 
@@ -122,14 +123,13 @@ export function detectColumnMapping(
   headers: string[],
   rows: RawRow[]
 ): DetectionResult {
-  const notes: string[] = [];
-  let formatHint: string | undefined;
+  const notes: NotaDeteccion[] = [];
+  let formatHint: FormatoId | undefined;
 
   // Detect known survey format
   for (const fmt of FORMAT_SIGNATURES) {
     if (fmt.detect(headers)) {
-      formatHint = fmt.name;
-      notes.push(`Formato reconocido: ${fmt.name}`);
+      formatHint = fmt.id;
       break;
     }
   }
@@ -198,14 +198,14 @@ export function detectColumnMapping(
   };
 
   // MACHO: banda R como primaria (menos ruidosa que B en los archivos públicos)
-  if (formatHint?.includes("MACHO")) {
+  if (formatHint === "macho") {
     const tiempo = headers.find((h) => /^hjd/i.test(h));
     const rMag = headers.find((h) => /^r(_?mag)?$/i.test(h));
     const rErr = headers.find((h) => /^(r_?err|err_r)$/i.test(h));
     if (tiempo) { mapping.time = tiempo; confidence.time = "high"; }
     if (rMag) { mapping.flux = rMag; confidence.flux = "high"; }
     if (rErr) { mapping.error = rErr; confidence.error = "high"; }
-    notes.push("MACHO: se usa la banda R (r / err_r) como primaria. Puedes cambiar a la banda B (b / err_b).");
+    notes.push("machoBandaR");
   }
 
   // If only 3 columns and nothing detected, assign positionally
@@ -216,7 +216,7 @@ export function detectColumnMapping(
     confidence.time = "low";
     confidence.flux = "low";
     confidence.error = "low";
-    notes.push("Sin nombres reconocibles: se asignaron columnas por posición (1=Tiempo, 2=Flujo, 3=Error).");
+    notes.push("asignacionPosicional");
   }
 
   return { mapping, confidence, notes, formatHint };
