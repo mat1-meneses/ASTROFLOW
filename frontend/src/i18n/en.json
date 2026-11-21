@@ -1,7 +1,8 @@
 {
   "comun": {
     "reintentar": "Retry",
-    "cancelar": "Cancel"
+    "cancelar": "Cancel",
+    "volver": "Back"
   },
   "menu": {
     "iniciarSesion": "Sign in",
@@ -147,7 +148,12 @@
       "curvaFase": "Phase-folded curve",
       "curvaFaseSub": "P = {{periodo}} d · two cycles (φ 0–2)",
       "sinPeriodo": "No valid period",
-      "curvaFaseHint": "Phase 0 at the brightest point"
+      "curvaFaseHint": "Phase 0 at the brightest point",
+      "ampliar": "Expand",
+      "cerrar": "Close",
+      "ejeFase": "Phase (φ)",
+      "sinDatos": "No data to display",
+      "sinPeriodoPlegar": "No valid period to fold the curve"
     }
   },
   "descriptores": {
@@ -270,7 +276,9 @@
     "sinReporte": "The narrative report was not available at export time.",
     "fuentes": "Retrieved sources: {{fuentes}}",
     "aviso": "<strong>Notice:</strong> This text is indicative. Scientific validation of the results must be carried out by an expert astronomer before publication or use in formal research.",
-    "pie": "Generated with ASTROFLOW v0.1-beta — variable star light curve analysis platform"
+    "pie": "Generated with ASTROFLOW v0.1-beta — variable star light curve analysis platform",
+    "graficos": "Charts",
+    "archivo": "ASTROFLOW analysis - {{nombre}}"
   },
   "otroIdioma": {
     "aviso": "This report was written in Spanish.",

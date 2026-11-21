@@ -8,6 +8,7 @@ import {
   ResponsiveContainer,
   Brush,
 } from "recharts";
+import { useTranslation } from "react-i18next";
 import type { LightCurvePoint } from "../../types";
 import { dominioY } from "../../utils/fase";
 
@@ -17,9 +18,15 @@ interface Props {
   yLabel: string;
   /** true para magnitudes: el eje se invierte para que "más brillante" quede arriba. */
   invertir: boolean;
+  /** Alto del gráfico: número en px o "100%" (vista ampliada). */
+  alto?: number | `${number}%`;
+  /** Ancho fijo en px. Si no se entrega, el gráfico se adapta al contenedor. */
+  ancho?: number;
+  /** Modo PDF: colores para papel blanco, sin animación, sin zoom ni tooltip. */
+  impresion?: boolean;
 }
 
-const C = {
+const PANTALLA = {
   line: "var(--astro-accent)",
   grid: "var(--astro-border)",
   axis: "var(--astro-muted)",
@@ -27,8 +34,19 @@ const C = {
   panel: "var(--astro-surface)",
 };
 
-export default function LightCurveChart({ points, xLabel, yLabel, invertir }: Props) {
-  if (points.length === 0) return <EmptyChart />;
+const IMPRESION = {
+  line: "#0369a1",
+  grid: "#d4d4d4",
+  axis: "#333333",
+  bg: "#ffffff",
+  panel: "#ffffff",
+};
+
+export default function LightCurveChart({ points, xLabel, yLabel, invertir, alto = 270, ancho, impresion = false }: Props) {
+  const { t } = useTranslation();
+  if (points.length === 0) return <EmptyChart texto={t("analisis.graficos.sinDatos")} />;
+
+  const C = impresion ? IMPRESION : PANTALLA;
 
   // Orden temporal + eje X numérico: los huecos entre observaciones se ven con su escala real.
   const data = [...points]
@@ -36,30 +54,35 @@ export default function LightCurveChart({ points, xLabel, yLabel, invertir }: Pr
     .map((p) => ({ t: p.time, f: p.flux }));
   const [yMin, yMax] = dominioY(data.map((d) => d.f));
 
-  return (
-    <ResponsiveContainer width="100%" height={270}>
-      <LineChart data={data} margin={{ top: 4, right: 8, bottom: 24, left: 8 }}>
-        <CartesianGrid strokeDasharray="2 5" stroke={C.grid} strokeOpacity={0.7} />
-        <XAxis
-          dataKey="t"
-          type="number"
-          domain={["dataMin", "dataMax"]}
-          tick={{ fill: C.axis, fontSize: 9, fontFamily: "JetBrains Mono" }}
-          tickLine={false}
-          axisLine={{ stroke: C.grid }}
-          tickFormatter={(v) => Number(v).toFixed(0)}
-          label={{ value: xLabel, position: "insideBottom", offset: -14, fill: C.axis, fontSize: 10, fontFamily: "JetBrains Mono" }}
-        />
-        <YAxis
-          domain={[yMin, yMax]}
-          reversed={invertir}
-          tick={{ fill: C.axis, fontSize: 9, fontFamily: "JetBrains Mono" }}
-          tickLine={false}
-          axisLine={{ stroke: C.grid }}
-          width={58}
-          tickFormatter={(v) => Number(v).toFixed(2)}
-          label={{ value: yLabel, angle: -90, position: "insideLeft", fill: C.axis, fontSize: 10, fontFamily: "JetBrains Mono", offset: 14 }}
-        />
+  const grafico = (
+    <LineChart
+      data={data}
+      width={ancho}
+      height={ancho ? Number(alto) : undefined}
+      margin={{ top: 4, right: 8, bottom: 24, left: 8 }}
+    >
+      <CartesianGrid strokeDasharray="2 5" stroke={C.grid} strokeOpacity={0.7} />
+      <XAxis
+        dataKey="t"
+        type="number"
+        domain={["dataMin", "dataMax"]}
+        tick={{ fill: C.axis, fontSize: 9, fontFamily: "JetBrains Mono" }}
+        tickLine={false}
+        axisLine={{ stroke: C.grid }}
+        tickFormatter={(v) => Number(v).toFixed(0)}
+        label={{ value: xLabel, position: "insideBottom", offset: -14, fill: C.axis, fontSize: 10, fontFamily: "JetBrains Mono" }}
+      />
+      <YAxis
+        domain={[yMin, yMax]}
+        reversed={invertir}
+        tick={{ fill: C.axis, fontSize: 9, fontFamily: "JetBrains Mono" }}
+        tickLine={false}
+        axisLine={{ stroke: C.grid }}
+        width={58}
+        tickFormatter={(v) => Number(v).toFixed(2)}
+        label={{ value: yLabel, angle: -90, position: "insideLeft", fill: C.axis, fontSize: 10, fontFamily: "JetBrains Mono", offset: 14 }}
+      />
+      {!impresion && (
         <Tooltip
           contentStyle={{
             backgroundColor: C.panel,
@@ -75,15 +98,17 @@ export default function LightCurveChart({ points, xLabel, yLabel, invertir }: Pr
           labelFormatter={(label) => `${xLabel} ${Number(label).toFixed(4)}`}
           cursor={{ stroke: C.grid, strokeWidth: 1, strokeDasharray: "3 3" }}
         />
-        <Line
-          type="monotone"
-          dataKey="f"
-          stroke="transparent"
-          dot={{ r: 2, fill: C.line, strokeWidth: 0 }}
-          activeDot={{ r: 4, fill: C.line, strokeWidth: 0 }}
-          isAnimationActive={data.length < 3000}
-          animationDuration={600}
-        />
+      )}
+      <Line
+        type="monotone"
+        dataKey="f"
+        stroke="transparent"
+        dot={{ r: impresion ? 1.5 : 2, fill: C.line, strokeWidth: 0 }}
+        activeDot={{ r: 4, fill: C.line, strokeWidth: 0 }}
+        isAnimationActive={!impresion && data.length < 3000}
+        animationDuration={600}
+      />
+      {!impresion && (
         <Brush
           dataKey="t"
           height={18}
@@ -92,15 +117,18 @@ export default function LightCurveChart({ points, xLabel, yLabel, invertir }: Pr
           travellerWidth={5}
           tickFormatter={(v) => String(Math.round(Number(v)))}
         />
-      </LineChart>
+      )}
+    </LineChart>
+  );
+
+  if (ancho) return grafico;
+  return (
+    <ResponsiveContainer width="100%" height={alto}>
+      {grafico}
     </ResponsiveContainer>
   );
 }
 
-function EmptyChart() {
-  return (
-    <div className="h-64 flex items-center justify-center text-astro-muted text-sm">
-      Sin datos para mostrar
-    </div>
-  );
+function EmptyChart({ texto }: { texto: string }) {
+  return <div className="h-64 flex items-center justify-center text-astro-muted text-sm">{texto}</div>;
 }

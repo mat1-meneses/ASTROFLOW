@@ -1,11 +1,13 @@
 import { useState, type FormEvent } from "react";
 import { Link, Navigate, useNavigate, useSearchParams } from "react-router";
+import { useTranslation } from "react-i18next";
 import AppHeader from "../components/AppHeader";
 import Campo from "../components/Campo";
 import { useSesion } from "../context/SesionContext";
 import { rutaSegura } from "../utils/rutaSegura";
 
 export default function Login() {
+  const { t: tVolver } = useTranslation();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const volver = rutaSegura(params.get("volver"));
@@ -43,7 +45,16 @@ export default function Login() {
   return (
     <div className="min-h-screen flex flex-col">
       <AppHeader />
-      <main className="flex-1 flex items-center justify-center px-6 py-12">
+      <main className="relative flex-1 flex items-center justify-center px-6 py-12">
+        <Link
+          to="/"
+          className="absolute left-8 top-6 flex items-center gap-1.5 text-sm text-astro-muted hover:text-astro-text transition-colors"
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          {tVolver("comun.volver")}
+        </Link>
         <div className="w-full max-w-sm">
           <h1 className="text-2xl font-semibold text-astro-text mb-2">Iniciar sesión</h1>
           <p className="text-sm text-astro-muted leading-relaxed">

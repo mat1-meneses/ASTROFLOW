@@ -1,5 +1,7 @@
 import { Trans, useTranslation } from "react-i18next";
-import type { ConfiguracionAnalisis, Reporte, ResultadoDescriptores } from "../types";
+import type { ConfiguracionAnalisis, LightCurvePoint, PhasedPoint, Reporte, ResultadoDescriptores } from "../types";
+import LightCurveChart from "./charts/LightCurveChart";
+import PhasedCurveChart from "./charts/PhasedCurveChart";
 import { filasDescriptores } from "../utils/filasDescriptores";
 import TextoReporte from "./TextoReporte";
 
@@ -9,13 +11,21 @@ interface Props {
   configuracion: ConfiguracionAnalisis;
   reporte: Reporte | null;
   analysisDate: string;
+  puntos: LightCurvePoint[];
+  fase: PhasedPoint[];
+  yLabel: string;
+  invertir: boolean;
 }
+
+// Ancho útil de una hoja A4 con márgenes de 2,5 cm (≈ 16 cm a 96 ppp).
+const ANCHO_GRAFICO = 600;
+const ALTO_GRAFICO = 250;
 
 /**
  * Vista de impresión (Exportar PDF). Usa solo estilos en línea para no depender de Tailwind.
  * El reporte se renderiza con TextoReporte (sin innerHTML).
  */
-export default function PrintView({ starName, resultado, configuracion, reporte, analysisDate }: Props) {
+export default function PrintView({ starName, resultado, configuracion, reporte, analysisDate, puntos, fase, yLabel, invertir }: Props) {
   const { t } = useTranslation();
 
   const rows = filasDescriptores(resultado, configuracion.tipoBrillo, configuracion.calibracion, t).map((f) => ({
@@ -37,7 +47,10 @@ export default function PrintView({ starName, resultado, configuracion, reporte,
     tdVal: { padding: "5pt 8pt", borderBottom: "1px solid #ddd", fontFamily: "monospace", fontWeight: 700 },
     tdMethod: { padding: "5pt 8pt", borderBottom: "1px solid #ddd", color: "#555", fontSize: "9pt", fontFamily: "monospace" },
     report: { fontSize: "11pt", lineHeight: "1.65", marginBottom: "8pt" } as React.CSSProperties,
-    disclaimer: { marginTop: "24pt", padding: "10pt", border: "1px solid #ccc", fontSize: "9pt", color: "#555", backgroundColor: "#f9f9f9" } as React.CSSProperties,
+    figura: { marginBottom: "14pt", breakInside: "avoid", pageBreakInside: "avoid" } as React.CSSProperties,
+    figuraTitulo: { fontFamily: "Arial, sans-serif", fontSize: "10pt", fontWeight: 700, marginBottom: "2pt" } as React.CSSProperties,
+    figuraSub: { fontFamily: "monospace", fontSize: "8.5pt", color: "#555", marginBottom: "6pt" } as React.CSSProperties,
+    disclaimer: { textAlign: "justify", marginTop: "24pt", padding: "10pt", border: "1px solid #ccc", fontSize: "9pt", color: "#555", backgroundColor: "#f9f9f9" } as React.CSSProperties,
     footer: { marginTop: "16pt", fontSize: "8pt", color: "#aaa", textAlign: "center" as const, borderTop: "1px solid #eee", paddingTop: "8pt" } as React.CSSProperties,
   };
 
@@ -78,6 +91,39 @@ export default function PrintView({ starName, resultado, configuracion, reporte,
         </tbody>
       </table>
 
+      <div style={s.sectionTitle}>{t("impresion.graficos")}</div>
+      <div style={s.figura}>
+        <div style={s.figuraTitulo}>{t("analisis.graficos.curvaLuz")}</div>
+        <div style={s.figuraSub}>
+          {t("analisis.graficos.curvaLuzSub", { n: puntos.length, x: configuracion.mapeo.time, y: configuracion.mapeo.flux })}
+        </div>
+        <LightCurveChart
+          points={puntos}
+          xLabel={configuracion.mapeo.time}
+          yLabel={yLabel}
+          invertir={invertir}
+          ancho={ANCHO_GRAFICO}
+          alto={ALTO_GRAFICO}
+          impresion
+        />
+      </div>
+      <div style={s.figura}>
+        <div style={s.figuraTitulo}>{t("analisis.graficos.curvaFase")}</div>
+        <div style={s.figuraSub}>
+          {resultado.derivados.periodo_principal_dias
+            ? t("analisis.graficos.curvaFaseSub", { periodo: resultado.derivados.periodo_principal_dias.toFixed(5) })
+            : t("analisis.graficos.sinPeriodo")}
+        </div>
+        <PhasedCurveChart
+          points={fase}
+          yLabel={yLabel}
+          invertir={invertir}
+          ancho={ANCHO_GRAFICO}
+          alto={ALTO_GRAFICO}
+          impresion
+        />
+      </div>
+
       <div style={s.sectionTitle}>{t("impresion.reporteNarrativo")}</div>
       <div style={s.report}>
         {reporte ? (
@@ -85,7 +131,7 @@ export default function PrintView({ starName, resultado, configuracion, reporte,
             texto={reporte.texto}
             estilos={{
               titulo: { fontSize: "11.5pt", fontWeight: 700, margin: "10pt 0 4pt" },
-              parrafo: { margin: "0 0 8pt" },
+              parrafo: { margin: "0 0 8pt", textAlign: "justify" },
             }}
           />
         ) : (

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router";
 import type { ResumenAnalisis } from "../types";
 import { StarIcon } from "./AppHeader";
 import UserMenu from "./UserMenu";
@@ -20,10 +21,12 @@ export default function Dashboard({ history, cargando, error, onNewCurve, onLoad
     <div className="min-h-screen flex flex-col">
       <header className="border-b border-astro-border px-8 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
+          <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
           <StarIcon />
           <span className="text-xl font-semibold tracking-wider text-astro-text">
             ASTRO<span className="text-astro-accent">FLOW</span>
           </span>
+          </Link>
           <span className="text-xs text-astro-muted font-mono bg-astro-surface-2 px-2 py-0.5 rounded border border-astro-border ml-1">
             v0.1-beta
           </span>

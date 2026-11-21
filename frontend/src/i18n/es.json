@@ -1,7 +1,8 @@
 {
   "comun": {
     "reintentar": "Reintentar",
-    "cancelar": "Cancelar"
+    "cancelar": "Cancelar",
+    "volver": "Volver"
   },
   "menu": {
     "iniciarSesion": "Iniciar sesión",
@@ -147,7 +148,12 @@
       "curvaFase": "Curva en fase",
       "curvaFaseSub": "P = {{periodo}} d · dos ciclos (φ 0–2)",
       "sinPeriodo": "Sin período válido",
-      "curvaFaseHint": "Fase 0 en el punto más brillante"
+      "curvaFaseHint": "Fase 0 en el punto más brillante",
+      "ampliar": "Ampliar",
+      "cerrar": "Cerrar",
+      "ejeFase": "Fase (φ)",
+      "sinDatos": "Sin datos para mostrar",
+      "sinPeriodoPlegar": "Sin período válido para plegar la curva"
     }
   },
   "descriptores": {
@@ -270,7 +276,9 @@
     "sinReporte": "El reporte narrativo no estaba disponible al exportar.",
     "fuentes": "Fuentes recuperadas: {{fuentes}}",
     "aviso": "<strong>Aviso:</strong> Este texto es orientativo. La validación científica de los resultados debe realizarse con un astrónomo experto antes de su publicación o uso en investigación formal.",
-    "pie": "Generado con ASTROFLOW v0.1-beta — plataforma de análisis de curvas de luz de estrellas variables"
+    "pie": "Generado con ASTROFLOW v0.1-beta — plataforma de análisis de curvas de luz de estrellas variables",
+    "graficos": "Gráficos",
+    "archivo": "Análisis ASTROFLOW - {{nombre}}"
   },
   "otroIdioma": {
     "aviso": "Este reporte fue redactado en inglés.",

@@ -86,14 +86,18 @@ export default function AnalysisView({
 
   useEffect(() => {
     if (!printing) return;
+    // El navegador propone como nombre del PDF el título de la página.
+    const tituloOriginal = document.title;
+    document.title = t("impresion.archivo", { nombre: nombre.replace(/\.(csv|txt|dat|tsv|asc)$/i, "") });
     const raf = requestAnimationFrame(() => requestAnimationFrame(() => window.print()));
     const alTerminar = () => setPrinting(false);
     window.addEventListener("afterprint", alTerminar);
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("afterprint", alTerminar);
+      document.title = tituloOriginal;
     };
-  }, [printing]);
+  }, [printing, nombre, t]);
 
   if (printing) {
     return (
@@ -103,6 +107,10 @@ export default function AnalysisView({
         configuracion={configuracion}
         reporte={reporte}
         analysisDate={analysisDate}
+        puntos={puntos}
+        fase={fase}
+        yLabel={yLabel}
+        invertir={invertir}
       />
     );
   }
@@ -187,9 +195,10 @@ export default function AnalysisView({
                 y: configuracion.mapeo.flux,
               })}
               hint={t("analisis.graficos.curvaLuzHint")}
-            >
-              <LightCurveChart points={puntos} xLabel={configuracion.mapeo.time} yLabel={yLabel} invertir={invertir} />
-            </ChartCard>
+              render={(alto) => (
+                <LightCurveChart points={puntos} xLabel={configuracion.mapeo.time} yLabel={yLabel} invertir={invertir} alto={alto} />
+              )}
+            />
             <ChartCard
               title={t("analisis.graficos.curvaFase")}
               subtitle={
@@ -198,9 +207,8 @@ export default function AnalysisView({
                   : t("analisis.graficos.sinPeriodo")
               }
               hint={t("analisis.graficos.curvaFaseHint")}
-            >
-              <PhasedCurveChart points={fase} yLabel={yLabel} invertir={invertir} />
-            </ChartCard>
+              render={(alto) => <PhasedCurveChart points={fase} yLabel={yLabel} invertir={invertir} alto={alto} />}
+            />
           </div>
         </Section>
 
@@ -243,15 +251,99 @@ function Section({ title, badge, children }: { title: string; badge?: string; ch
   );
 }
 
-function ChartCard({ title, subtitle, hint, children }: { title: string; subtitle: string; hint?: string; children: React.ReactNode }) {
+interface ChartCardProps {
+  title: string;
+  subtitle: string;
+  hint?: string;
+  /** Dibuja el gráfico con el alto indicado (270 px en la tarjeta, "100%" ampliado). */
+  render: (alto: number | `${number}%`) => React.ReactNode;
+}
+
+function ChartCard({ title, subtitle, hint, render }: ChartCardProps) {
+  const { t } = useTranslation();
+  const [ampliado, setAmpliado] = useState(false);
+  const cerrar = useCallback(() => setAmpliado(false), []);
+
   return (
-    <div className="bg-astro-surface border border-astro-border rounded-lg p-5">
-      <div className="mb-4">
-        <h3 className="text-sm font-semibold text-astro-text">{title}</h3>
-        <p className="text-xs text-astro-muted font-mono mt-0.5">{subtitle}</p>
-        {hint && <p className="text-xs text-astro-muted mt-1 opacity-60">{hint}</p>}
+    <>
+      <div className="bg-astro-surface border border-astro-border rounded-lg p-5">
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h3 className="text-sm font-semibold text-astro-text">{title}</h3>
+            <p className="text-xs text-astro-muted font-mono mt-0.5">{subtitle}</p>
+            {hint && <p className="text-xs text-astro-muted mt-1 opacity-60">{hint}</p>}
+          </div>
+          <button
+            type="button"
+            onClick={() => setAmpliado(true)}
+            title={t("analisis.graficos.ampliar")}
+            aria-label={t("analisis.graficos.ampliar")}
+            className="flex-shrink-0 flex items-center gap-1.5 text-xs text-astro-muted border border-astro-border rounded px-2.5 py-1.5 hover:text-astro-accent hover:border-astro-accent/50 transition-colors"
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+            </svg>
+            {t("analisis.graficos.ampliar")}
+          </button>
+        </div>
+        {render(270)}
       </div>
-      {children}
+      {ampliado && (
+        <VistaAmpliada title={title} subtitle={subtitle} onClose={cerrar}>
+          {render("100%")}
+        </VistaAmpliada>
+      )}
+    </>
+  );
+}
+
+/** Gráfico a pantalla completa. Esc o el botón Cerrar vuelven a la vista normal. */
+function VistaAmpliada({ title, subtitle, onClose, children }: { title: string; subtitle: string; onClose: () => void; children: React.ReactNode }) {
+  const { t } = useTranslation();
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    // Pantalla completa real si el navegador lo permite; si no, igual cubre toda la ventana.
+    el?.requestFullscreen?.().catch(() => {});
+    const alSalirDePantallaCompleta = () => {
+      if (!document.fullscreenElement) onClose();
+    };
+    const alPresionarTecla = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !document.fullscreenElement) onClose();
+    };
+    document.addEventListener("fullscreenchange", alSalirDePantallaCompleta);
+    window.addEventListener("keydown", alPresionarTecla);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("fullscreenchange", alSalirDePantallaCompleta);
+      window.removeEventListener("keydown", alPresionarTecla);
+      document.body.style.overflow = "";
+      if (el && document.fullscreenElement === el) document.exitFullscreen().catch(() => {});
+    };
+  }, [onClose]);
+
+  const cerrar = () => {
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    onClose();
+  };
+
+  return (
+    <div ref={ref} className="fixed inset-0 z-50 bg-astro-bg flex flex-col p-6" role="dialog" aria-modal="true" aria-label={title}>
+      <div className="flex items-start justify-between gap-4 mb-4">
+        <div className="min-w-0">
+          <h3 className="text-base font-semibold text-astro-text">{title}</h3>
+          <p className="text-xs text-astro-muted font-mono mt-0.5">{subtitle}</p>
+        </div>
+        <button
+          type="button"
+          onClick={cerrar}
+          className="flex-shrink-0 text-sm text-astro-muted border border-astro-border rounded px-3 py-1.5 hover:text-astro-text hover:border-astro-muted transition-colors"
+        >
+          {t("analisis.graficos.cerrar")}
+        </button>
+      </div>
+      <div className="flex-1 min-h-0">{children}</div>
     </div>
   );
 }

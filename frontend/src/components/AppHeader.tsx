@@ -1,14 +1,15 @@
+import { Link } from "react-router";
 import UserMenu from "./UserMenu";
 
 export default function AppHeader() {
   return (
     <header className="border-b border-astro-border px-8 py-4 flex items-center justify-between flex-shrink-0">
-      <div className="flex items-center gap-3">
+      <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
         <StarIcon />
         <span className="text-lg font-semibold tracking-wider text-astro-text">
           ASTRO<span className="text-astro-accent">FLOW</span>
         </span>
-      </div>
+      </Link>
       <UserMenu />
     </header>
   );
