@@ -4,6 +4,7 @@
 //   POST /api/analisis               → solo con sesión: guarda el análisis
 //   GET  /api/analisis               → solo con sesión: lista los análisis del usuario
 //   GET  /api/analisis/:id           → solo con sesión: abre uno (si es del usuario)
+//   DELETE /api/analisis/:id         → solo con sesión: elimina uno (si es del usuario)
 const express = require('express');
 const rateLimit = require('express-rate-limit');
 const { obtenerDescriptores, adaptarParaReporte } = require('../../rag/descriptoresClient.js');
@@ -132,6 +133,15 @@ router.get('/:id', requerirSesion, async (req, res) => {
   const analisis = await analisisRepo.obtenerDeUsuario(id, req.usuarioId);
   if (!analisis) return res.status(404).json({ error: 'Análisis no encontrado.' });
   res.json(analisis);
+});
+
+router.delete('/:id', requerirSesion, async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) return res.status(404).json({ error: 'Análisis no encontrado.' });
+
+  const eliminado = await analisisRepo.eliminarDeUsuario(id, req.usuarioId);
+  if (!eliminado) return res.status(404).json({ error: 'Análisis no encontrado.' });
+  res.status(204).end();
 });
 
 module.exports = router;

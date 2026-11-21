@@ -62,3 +62,7 @@ export function listarAnalisis() {
 export function obtenerAnalisis(id: number) {
   return pedir<Analisis>(`/api/analisis/${id}`);
 }
+
+export function eliminarAnalisis(id: number) {
+  return pedir<void>(`/api/analisis/${id}`, { method: "DELETE" });
+}

@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router";
 import Dashboard from "../components/Dashboard";
-import { listarAnalisis } from "../api/analisis";
+import { eliminarAnalisis, listarAnalisis } from "../api/analisis";
 import { useSesion } from "../context/SesionContext";
 import type { ResumenAnalisis } from "../types";
 
@@ -31,6 +31,10 @@ export default function Panel() {
       error={error}
       onNewCurve={() => navigate("/")}
       onLoadCurve={(c) => navigate(`/analisis/${c.id}`)}
+      onDeleteCurve={async (c) => {
+        await eliminarAnalisis(c.id);
+        setHistorial((h) => h.filter((x) => x.id !== c.id));
+      }}
     />
   );
 }

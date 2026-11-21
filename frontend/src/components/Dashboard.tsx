@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ResumenAnalisis } from "../types";
 import { StarIcon } from "./AppHeader";
@@ -9,9 +10,10 @@ interface Props {
   error: string | null;
   onNewCurve: () => void;
   onLoadCurve: (c: ResumenAnalisis) => void;
+  onDeleteCurve: (c: ResumenAnalisis) => Promise<void>;
 }
 
-export default function Dashboard({ history, cargando, error, onNewCurve, onLoadCurve }: Props) {
+export default function Dashboard({ history, cargando, error, onNewCurve, onLoadCurve, onDeleteCurve }: Props) {
   const { t } = useTranslation();
 
   return (
@@ -75,6 +77,7 @@ export default function Dashboard({ history, cargando, error, onNewCurve, onLoad
                 key={curve.id}
                 curve={curve}
                 onLoad={() => onLoadCurve(curve)}
+                onDelete={() => onDeleteCurve(curve)}
               />
             ))}
           </div>
@@ -120,11 +123,25 @@ function EmptyState({ onNewCurve }: { onNewCurve: () => void }) {
 function CurveCard({
   curve,
   onLoad,
+  onDelete,
 }: {
   curve: ResumenAnalisis;
   onLoad: () => void;
+  onDelete: () => Promise<void>;
 }) {
   const { t, i18n } = useTranslation();
+  const [eliminando, setEliminando] = useState(false);
+
+  const eliminar = async () => {
+    if (!window.confirm(t("panel.eliminar.confirmar", { nombre: curve.nombre }))) return;
+    setEliminando(true);
+    try {
+      await onDelete(); // si sale bien, la tarjeta desaparece de la lista
+    } catch {
+      setEliminando(false);
+      window.alert(t("panel.eliminar.error"));
+    }
+  };
   const locale = i18n.resolvedLanguage === "en" ? "en-US" : "es-CL";
 
   const fecha = new Date(curve.creadoEn).toLocaleString(locale, {
@@ -137,9 +154,10 @@ function CurveCard({
   const fmt = (v: number | null, dec: number) => (v === null ? "—" : v.toFixed(dec));
 
   return (
+    <div className="flex items-stretch gap-3">
     <button
       onClick={onLoad}
-      className="w-full text-left border border-astro-border rounded-lg p-5 bg-astro-surface hover:border-astro-accent/40 hover:bg-astro-surface-2 transition-all group"
+      className="flex-1 min-w-0 text-left border border-astro-border rounded-lg p-5 bg-astro-surface hover:border-astro-accent/40 hover:bg-astro-surface-2 transition-all group"
     >
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
@@ -157,6 +175,20 @@ function CurveCard({
         </div>
       </div>
     </button>
+    <button
+      type="button"
+      onClick={eliminar}
+      disabled={eliminando}
+      aria-label={t("panel.eliminar.aria", { nombre: curve.nombre })}
+      title={t("panel.eliminar.aria", { nombre: curve.nombre })}
+      className="flex-shrink-0 flex flex-col items-center justify-center gap-1.5 w-24 border border-astro-border rounded-lg bg-astro-surface text-astro-muted hover:border-astro-red/50 hover:text-astro-red hover:bg-astro-red/5 transition-all disabled:opacity-50"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6" />
+      </svg>
+      <span className="text-xs">{eliminando ? t("panel.eliminar.eliminando") : t("panel.eliminar.boton")}</span>
+    </button>
+    </div>
   );
 }
 

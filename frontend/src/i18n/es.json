@@ -252,6 +252,13 @@
       "titulo": "Aún no tienes análisis guardados",
       "descripcion": "Analiza una curva y usa \"Guardar en historial\" para que aparezca aquí.",
       "boton": "Cargar primera curva de luz →"
+    },
+    "eliminar": {
+      "boton": "Eliminar",
+      "eliminando": "Eliminando…",
+      "aria": "Eliminar el análisis {{nombre}}",
+      "confirmar": "¿Eliminar el análisis \"{{nombre}}\"? Esta acción no se puede deshacer.",
+      "error": "No se pudo eliminar el análisis. Intenta de nuevo."
     }
   },
   "impresion": {
@@ -270,5 +277,4 @@
     "boton": "Regenerar en español",
     "confirmar": "Regenerar el reporte reemplazará tus ediciones. ¿Continuar?"
   }
-
 }

@@ -47,4 +47,13 @@ async function obtenerDeUsuario(id, usuarioId) {
   return rows[0] || null;
 }
 
-module.exports = { crear, listarPorUsuario, obtenerDeUsuario };
+// Solo borra si el análisis pertenece al usuario; devuelve true si se eliminó.
+async function eliminarDeUsuario(id, usuarioId) {
+  const { rowCount } = await pool.query(
+    `DELETE FROM analisis WHERE id = $1 AND usuario_id = $2`,
+    [id, usuarioId]
+  );
+  return rowCount > 0;
+}
+
+module.exports = { crear, listarPorUsuario, obtenerDeUsuario, eliminarDeUsuario };

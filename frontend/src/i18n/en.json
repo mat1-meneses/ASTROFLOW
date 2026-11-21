@@ -252,6 +252,13 @@
       "titulo": "You don't have any saved analyses yet",
       "descripcion": "Analyze a curve and use \"Save to history\" to make it appear here.",
       "boton": "Upload your first light curve →"
+    },
+    "eliminar": {
+      "boton": "Delete",
+      "eliminando": "Deleting…",
+      "aria": "Delete the analysis {{nombre}}",
+      "confirmar": "Delete the analysis \"{{nombre}}\"? This action cannot be undone.",
+      "error": "The analysis could not be deleted. Please try again."
     }
   },
   "impresion": {
