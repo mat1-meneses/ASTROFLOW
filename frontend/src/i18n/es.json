@@ -20,11 +20,11 @@
     "descripcion": "Formatos aceptados: CSV, TXT, DAT, TSV y ASC. Los nombres de las columnas pueden venir en la primera fila o en el último comentario antes de los datos (como en MACHO); las demás líneas que comienzan con <code>#</code> se muestran como metadatos. En el paso siguiente confirmas qué columna es el tiempo, el brillo y el error.",
     "soltar": "Suelta el archivo aquí",
     "arrastrar": "Arrastra un archivo o haz clic para seleccionar",
-    "formatos": "CSV · TXT · DAT · TSV · ASC · máx. 10 MB",
+    "formatos": "CSV · TXT · DAT · TSV · ASC · máx. 4 MB",
     "separador": "o",
     "errores": {
       "formato": "Formato no soportado. Use archivos .csv, .txt, .dat, .tsv o .asc",
-      "tamano": "El archivo supera los 10 MB.",
+      "tamano": "El archivo supera los 4 MB.",
       "lectura": "Error al leer el archivo."
     },
     "ejemplo": {

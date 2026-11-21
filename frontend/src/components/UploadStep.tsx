@@ -12,7 +12,8 @@ interface Props {
   errorExterno?: string | null;
 }
 
-const MAX_BYTES = 10 * 1024 * 1024;
+// Vercel rechaza solicitudes de más de 4,5 MB; 4 MB deja margen para el JSON.
+const MAX_BYTES = 4 * 1024 * 1024;
 
 export default function UploadStep({ onFileLoaded, onUseExample, onBack, cargandoEjemplo, errorExterno }: Props) {
   const { t } = useTranslation();

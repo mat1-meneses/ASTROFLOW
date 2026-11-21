@@ -20,11 +20,11 @@
     "descripcion": "Accepted formats: CSV, TXT, DAT, TSV and ASC. Column names can be in the first row or in the last comment before the data (as in MACHO); other lines starting with <code>#</code> are shown as metadata. In the next step you confirm which column is time, brightness and error.",
     "soltar": "Drop the file here",
     "arrastrar": "Drag a file or click to select",
-    "formatos": "CSV · TXT · DAT · TSV · ASC · max. 10 MB",
+    "formatos": "CSV · TXT · DAT · TSV · ASC · max. 4 MB",
     "separador": "or",
     "errores": {
       "formato": "Unsupported format. Use .csv, .txt, .dat, .tsv or .asc files",
-      "tamano": "The file exceeds 10 MB.",
+      "tamano": "The file exceeds 4 MB.",
       "lectura": "Error reading the file."
     },
     "ejemplo": {

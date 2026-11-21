@@ -1,0 +1,24 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "pnpm install && pnpm --dir frontend install",
+  "buildCommand": "pnpm --dir frontend build",
+  "outputDirectory": "frontend/dist",
+  "regions": [
+    "gru1"
+  ],
+  "functions": {
+    "api/index.js": {
+      "maxDuration": 120
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api"
+    },
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
+    }
+  ]
+}

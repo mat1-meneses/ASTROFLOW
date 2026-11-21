@@ -1,0 +1,10 @@
+# Solo afecta despliegues desde la CLI (vercel deploy); los de GitHub ya excluyen lo de .gitignore.
+rag/papers/
+node_modules/
+frontend/node_modules/
+descriptores/
+docs/
+tests/
+*.dump
+migrar_neon.bat
+.env
