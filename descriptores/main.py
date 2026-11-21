@@ -1,6 +1,19 @@
 # pip install feets fastapi uvicorn
+import os
+import traceback
+
+# En Vercel (serverless) solo /tmp admite escritura y no existe /dev/shm,
+# que necesitan matplotlib y el paralelismo por procesos.
+os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
+
 import numpy as np
 import feets
+
+try:
+    import dask
+    dask.config.set(scheduler="synchronous")  # feets calcula en un solo proceso
+except ImportError:
+    pass
 import feets.preprocess
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
@@ -78,10 +91,16 @@ def calcular_descriptores(lc: CurvaDeLuz):
             f"({n_descartados} descartados por valores faltantes); se necesitan al menos {MIN_PUNTOS}.",
         )
 
-    fs = feets.FeatureSpace(data=set(datos), only=DESCRIPTORES)
+    try:
+        fs = feets.FeatureSpace(
+            data=set(datos), only=DESCRIPTORES, dask_options={"scheduler": "synchronous"}
+        )
+    except TypeError:  # versiones de feets sin el parámetro dask_options
+        fs = feets.FeatureSpace(data=set(datos), only=DESCRIPTORES)
     try:
         resultado = fs.extract(**datos)[0]
     except Exception as exc:
+        traceback.print_exc()  # queda en los logs de Vercel para diagnosticar
         raise HTTPException(422, f"No se pudieron calcular los descriptores: {exc}")
 
     d = a_json(dict(resultado))
