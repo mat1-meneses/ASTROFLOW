@@ -30,18 +30,56 @@ class Malicioso:
 
 
 def test_carga_segura_bloquea_codigo_no_permitido(tmp_path):
+    """El conversor (desarrollo) solo acepta clases de NumPy y scikit-learn en el .joblib."""
+    import convertir_modelo
     ruta = tmp_path / "modelo_malicioso.joblib"
     ruta.write_bytes(pickle.dumps({"schema_version": 1, "x": Malicioso()}))
     with pytest.raises(pickle.UnpicklingError, match="Clase no permitida"):
+        convertir_modelo.cargar_joblib(ruta)
+
+
+def test_produccion_no_acepta_objetos_pickle_en_el_modelo(tmp_path):
+    """El .npz se abre con allow_pickle=False: un arreglo de objetos no se carga."""
+    ruta = tmp_path / "modelo.npz"
+    with np.load(clasificador.RUTA_MODELO, allow_pickle=False) as z:
+        arreglos = {k: z[k] for k in z.files}
+    arreglos["medianas"] = np.array([Malicioso()], dtype=object)
+    np.savez(ruta, **arreglos)
+    with pytest.raises(ValueError):
         clasificador.cargar_modelo(ruta)
 
 
 def test_modelo_carga_con_el_esquema_esperado():
     modelo = clasificador.modelo()
-    assert modelo["feature_columns"] == clasificador.FEATURES
-    assert set(map(str, modelo["classifier"].classes_)) == CLASES
+    assert modelo["columnas"].tolist() == clasificador.FEATURES
+    assert set(modelo["clases"].tolist()) == CLASES
+    assert modelo["n_arboles"] == 224
     bajo, alto = modelo["dominio"]["Mean"]
     assert 12 < bajo < 14 and 20 < alto < 22  # magnitudes calibradas de OGLE-III
+
+
+def test_numpy_igual_a_scikit_learn():
+    """La predicción con NumPy (producción) da los mismos puntajes que el modelo original."""
+    pytest.importorskip("sklearn")
+    import pandas as pd
+    import convertir_modelo
+    original = convertir_modelo.cargar_joblib()
+    rf, imputador = original["classifier"], original["imputer"]
+    mod = clasificador.modelo()
+
+    _, m, _ = curva_macho()
+    reales = pd.concat([clasificador.descriptores_modelo(m + desfase, p)
+                        for desfase in (0, 22.0) for p in (0.34057, 0.68114, 5.3)])
+    rng = np.random.default_rng(0)
+    aleatorios = pd.DataFrame(rng.uniform(reales.min() - 1, reales.max() + 1, (2000, 10)),
+                              columns=clasificador.FEATURES)
+    aleatorios.iloc[::5, 2] = np.nan  # valores faltantes: los completa el imputador
+    for X in (reales, aleatorios):
+        esperado = rf.predict_proba(imputador.transform(X))
+        obtenido = np.array([clasificador.predecir_puntajes(mod, x) for x in X.to_numpy(float)])
+        assert np.abs(esperado - obtenido).max() < 1e-12
+        assert (esperado.argmax(axis=1) == obtenido.argmax(axis=1)).all()
+    assert mod["clases"].tolist() == [str(c) for c in rf.classes_]
 
 
 def test_descriptores_iguales_a_los_del_entrenamiento():

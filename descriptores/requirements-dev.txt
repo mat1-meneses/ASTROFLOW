@@ -1,3 +1,6 @@
 # Solo para correr las pruebas (no se instala en Vercel ni en la imagen Docker)
 pytest
 httpx
+# Solo para convertir el modelo (convertir_modelo.py) y comparar NumPy contra scikit-learn en las pruebas.
+# Misma versión con que se entrenó el modelo.
+scikit-learn==1.9.*

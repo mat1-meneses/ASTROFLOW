@@ -4,21 +4,22 @@ Modelo: Random Forest (scikit-learn) entrenado con curvas de luz del catálogo O
 (banda I), aportado por un compañero del NIDS junto con su código de descriptores
 (clasificador_descriptores.py). Clases: CEP, DSCT, ECL, LPV y RRLYR.
 
-El modelo se guarda con joblib (pickle). Como cargar un pickle puede ejecutar código,
-se usa un lector restringido que solo acepta clases de NumPy y scikit-learn.
+El modelo original (modelos/classifier.joblib) se convirtió una vez a arreglos NumPy
+(modelos/classifier.npz) con convertir_modelo.py. Aquí la predicción se hace solo con NumPy:
+producción no necesita scikit-learn (que superaba el límite de tamaño de Vercel) y el archivo
+se abre con allow_pickle=False, así que no se ejecuta ningún pickle. La prueba
+test_numpy_igual_a_scikit_learn verifica que los puntajes sean los mismos que en scikit-learn.
 """
+import json
 import math
 import pathlib
-import pickle
-import warnings
 
 import numpy as np
 import pandas as pd
-from joblib import numpy_pickle
 
 import clasificador_descriptores as d
 
-RUTA_MODELO = pathlib.Path(__file__).resolve().parent / "modelos" / "classifier.joblib"
+RUTA_MODELO = pathlib.Path(__file__).resolve().parent / "modelos" / "classifier.npz"
 
 FEATURES = ["Period", "Mean", "Beyond1Std", "Rcs", "Skew", "MedianBRP",
             "SmallKurtosis", "AndersonDarling", "MedianAbsDev", "Autocor_length"]
@@ -28,34 +29,29 @@ MARGEN_DOMINIO = 0.05
 PROBABILIDAD_MINIMA = 0.5   # bajo este puntaje la clasificación se informa como poco confiable
 PROBABILIDAD_ALTA = 0.7
 
-_MODULOS_PERMITIDOS = ("numpy", "sklearn.", "joblib.numpy_pickle")
-
-
-class _LectorSeguro(numpy_pickle.NumpyUnpickler):
-    """Unpickler de joblib que bloquea cualquier clase fuera de NumPy y scikit-learn."""
-
-    def find_class(self, modulo, nombre):
-        if not modulo.startswith(_MODULOS_PERMITIDOS):
-            raise pickle.UnpicklingError(f"Clase no permitida en el modelo: {modulo}.{nombre}")
-        return super().find_class(modulo, nombre)
+_ARREGLOS = ("version", "columnas", "clases", "medianas", "raices", "izquierda",
+             "derecha", "variable", "umbral", "probabilidad", "metadata_json")
 
 
 def cargar_modelo(ruta=RUTA_MODELO):
-    with open(ruta, "rb") as f, warnings.catch_warnings():
-        warnings.simplefilter("ignore")  # aviso de versión de scikit-learn al deserializar
-        modelo = _LectorSeguro(str(ruta), f, ensure_native_byte_order=False).load()
-    if modelo.get("schema_version") != 1 or modelo.get("feature_columns") != FEATURES:
-        raise ValueError("Esquema del clasificador no soportado u orden de descriptores distinto.")
-    modelo["dominio"] = _rango_de_decision(modelo["classifier"])
+    with np.load(ruta, allow_pickle=False) as z:
+        if set(z.files) != set(_ARREGLOS):
+            raise ValueError("El archivo del clasificador no tiene los arreglos esperados.")
+        modelo = {k: z[k] for k in _ARREGLOS}
+    if int(modelo["version"]) != 1 or modelo["columnas"].tolist() != FEATURES:
+        raise ValueError("Formato del clasificador no soportado u orden de descriptores distinto.")
+    modelo["metadata"] = json.loads(str(modelo.pop("metadata_json")))
+    modelo["n_arboles"] = len(modelo["raices"])
+    modelo["dominio"] = _rango_de_decision(modelo)
     return modelo
 
 
-def _rango_de_decision(clasificador):
+def _rango_de_decision(mod):
     """Rango de Period y Mean en que los árboles del modelo hacen cortes (lo que 'conoce')."""
     rangos = {}
+    internos = mod["izquierda"] != -1
     for nombre in ("Period", "Mean"):
-        i = FEATURES.index(nombre)
-        umbrales = np.concatenate([e.tree_.threshold[e.tree_.feature == i] for e in clasificador.estimators_])
+        umbrales = mod["umbral"][internos & (mod["variable"] == FEATURES.index(nombre))]
         bajo, alto = float(umbrales.min()), float(umbrales.max())
         if nombre == "Period":  # escala logarítmica: margen proporcional (nunca negativo)
             rangos[nombre] = (bajo / (1 + MARGEN_DOMINIO), alto * (1 + MARGEN_DOMINIO))
@@ -63,6 +59,23 @@ def _rango_de_decision(clasificador):
             holgura = (alto - bajo) * MARGEN_DOMINIO
             rangos[nombre] = (bajo - holgura, alto + holgura)
     return rangos
+
+
+def predecir_puntajes(mod, fila):
+    """Puntaje de cada clase para un vector de descriptores, igual que scikit-learn:
+    imputación por mediana, recorrido de cada árbol hasta su hoja y promedio de las hojas."""
+    x = np.asarray(fila, dtype=np.float64)
+    x = np.where(np.isnan(x), mod["medianas"], x)
+    x = x.astype(np.float32).astype(np.float64)  # scikit-learn compara en float32
+    izq, der, var, umb = mod["izquierda"], mod["derecha"], mod["variable"], mod["umbral"]
+    nodos = mod["raices"].astype(np.int64)
+    while True:
+        internos = izq[nodos] != -1
+        if not internos.any():
+            break
+        n = nodos[internos]
+        nodos[internos] = np.where(x[var[n]] <= umb[n], izq[n], der[n])
+    return mod["probabilidad"][nodos].mean(axis=0)
 
 
 _modelo = None
@@ -93,11 +106,10 @@ def clasificar(tiempo, magnitud, periodo):
         return None
     mod = modelo()
     tabla = descriptores_modelo(magnitud, periodo)
-    entrada = mod["imputer"].transform(tabla)
-    clf = mod["classifier"]
-    puntajes = clf.predict_proba(entrada)[0]
+    puntajes = predecir_puntajes(mod, tabla.iloc[0].to_numpy(dtype=np.float64))
+    clases = mod["clases"].tolist()
     orden = np.argsort(puntajes)[::-1]
-    clase = str(clf.classes_[orden[0]])
+    clase = str(clases[orden[0]])
     puntaje_max = float(puntajes[orden[0]])
 
     avisos = []
@@ -119,16 +131,16 @@ def clasificar(tiempo, magnitud, periodo):
     meta = mod.get("metadata", {})
     return {
         "clase": clase,
-        "segunda_clase": str(clf.classes_[orden[1]]),
-        "probabilidades": {str(c): round(float(p), 4) for c, p in zip(clf.classes_, puntajes)},
+        "segunda_clase": str(clases[orden[1]]),
+        "probabilidades": {str(c): round(float(p), 4) for c, p in zip(clases, puntajes)},
         "confianza": confianza,
         "avisos": avisos,
         "descriptores": {k: (None if pd.isna(v) else float(v)) for k, v in tabla.iloc[0].items()},
         "dominio_entrenamiento": {k: [round(a, 4), round(b, 4)] for k, (a, b) in mod["dominio"].items()},
         "modelo": {
-            "algoritmo": f"Random Forest ({len(clf.estimators_)} árboles)",
+            "algoritmo": f"Random Forest ({mod['n_arboles']} árboles)",
             "datos_entrenamiento": "OGLE-III (banda I)",
-            "clases": [str(c) for c in clf.classes_],
+            "clases": clases,
             "f1_macro_prueba": meta.get("f1_macro"),
             "n_entrenamiento": meta.get("n_train"),
             "n_prueba": meta.get("n_test"),

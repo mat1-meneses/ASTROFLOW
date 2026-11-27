@@ -8,3 +8,5 @@ tests/
 pytest.ini
 requirements-dev.txt
 .pytest_cache/
+convertir_modelo.py
+modelos/classifier.joblib
