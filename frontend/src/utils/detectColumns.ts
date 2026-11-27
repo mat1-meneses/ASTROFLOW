@@ -119,6 +119,11 @@ function confidenceFromScore(score: number): Confidence {
   return "none";
 }
 
+/** El mapeo es válido si tiempo, brillo y error están asignados a tres columnas distintas. */
+export function esMapeoValido(m: Partial<ColumnMapping>): m is ColumnMapping {
+  return !!m.time && !!m.flux && !!m.error && new Set([m.time, m.flux, m.error]).size === 3;
+}
+
 export function detectColumnMapping(
   headers: string[],
   rows: RawRow[]

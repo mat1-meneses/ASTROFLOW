@@ -139,7 +139,9 @@
       "descriptores": "Descriptores calculados",
       "descriptoresBadge": "Microservicio Python · feets",
       "reporte": "Reporte generado por IA",
-      "reporteBadge": "RAG con fuentes científicas · editable"
+      "reporteBadge": "RAG con fuentes científicas · editable",
+      "clasificacion": "Clasificación automática",
+      "clasificacionBadge": "Random Forest · OGLE-III"
     },
     "graficos": {
       "curvaLuz": "Curva de luz",
@@ -148,7 +150,12 @@
       "curvaFase": "Curva en fase",
       "curvaFaseSub": "P = {{periodo}} d · dos ciclos (φ 0–2)",
       "sinPeriodo": "Sin período válido",
-      "curvaFaseHint": "Fase 0 en el punto más brillante",
+      "curvaFaseHint": "Fase 0 en el máximo de brillo (curva ajustada)",
+      "curvaFaseHintMinimo": "Fase 0 en el mínimo de brillo (curva ajustada), como en binarias eclipsantes",
+      "faseCero": "Dónde ubicar la fase 0",
+      "faseCeroCorto": "Fase 0",
+      "faseCeroMaximo": "Máximo",
+      "faseCeroMinimo": "Mínimo",
       "ampliar": "Ampliar",
       "cerrar": "Cerrar",
       "ejeFase": "Fase (φ)",
@@ -170,9 +177,9 @@
       "flujo": "flujo"
     },
     "metodos": {
-      "lomb": "Lomb-Scargle (feets)",
+      "lomb": "Lomb-Scargle (astropy)",
       "fats": "Fórmula FATS",
-      "fourier": "Armónicos de Fourier (feets)",
+      "fourier": "Ajuste de Fourier (4 armónicos)",
       "conteo": "Conteo",
       "mad": "Mediana y MAD"
     },
@@ -212,6 +219,12 @@
       },
       "r31": {
         "descripcion": "Amplitud del 3.er armónico respecto al fundamental"
+      },
+      "phi21": {
+        "descripcion": "Diferencia de fase del 2.º armónico: φ2 − 2φ1 (separa, p. ej., cefeidas de sobretono de binarias de contacto)"
+      },
+      "phi31": {
+        "descripcion": "Diferencia de fase del 3.er armónico: φ3 − 3φ1"
       },
       "stetsonK": {
         "parametro": "Índice K de Stetson",
@@ -284,5 +297,32 @@
     "aviso": "Este reporte fue redactado en inglés.",
     "boton": "Regenerar en español",
     "confirmar": "Regenerar el reporte reemplazará tus ediciones. ¿Continuar?"
+  },
+  "clasificacion": {
+    "claseProbable": "Tipo de estrella más probable",
+    "clase": "Clase",
+    "puntaje": "Puntaje",
+    "puntajes": "Puntaje por clase",
+    "confianza": "Confianza {{nivel}}",
+    "niveles": {
+      "alta": "alta",
+      "media": "media",
+      "baja": "baja"
+    },
+    "clases": {
+      "CEP": "Cefeida",
+      "DSCT": "δ Scuti",
+      "ECL": "Binaria eclipsante",
+      "LPV": "Variable de período largo",
+      "RRLYR": "RR Lyrae"
+    },
+    "pocoConfiable": "Clasificación poco confiable:",
+    "avisos": {
+      "magnitud_fuera_de_rango": "la magnitud media está fuera del rango de los datos de entrenamiento (OGLE-III, magnitudes calibradas en banda I); con magnitudes instrumentales u otra banda el resultado puede no ser válido.",
+      "periodo_fuera_de_rango": "el período está fuera del rango de los datos de entrenamiento.",
+      "puntaje_bajo": "ninguna clase supera un puntaje de 0,5."
+    },
+    "modelo": "Modelo Random Forest ({{arboles}} árboles) entrenado con curvas de luz de OGLE-III (banda I). F1 macro en la prueba externa: {{f1}}. Los puntajes indican la preferencia del modelo, no son probabilidades calibradas.",
+    "noDisponible": "Clasificación no disponible: el análisis se guardó antes de incorporar el clasificador o no se obtuvo un período válido."
   }
 }

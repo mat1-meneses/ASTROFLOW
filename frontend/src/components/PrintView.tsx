@@ -71,6 +71,49 @@ export default function PrintView({ starName, resultado, configuracion, reporte,
         </div>
       </div>
 
+      {resultado.clasificacion && (
+        <>
+          <div style={s.sectionTitle}>{t("analisis.secciones.clasificacion")}</div>
+          <p style={{ margin: "0 0 6pt" }}>
+            <strong>
+              {t(`clasificacion.clases.${resultado.clasificacion.clase}`)} ({resultado.clasificacion.clase})
+            </strong>
+            {" · "}
+            {t("clasificacion.confianza", { nivel: t(`clasificacion.niveles.${resultado.clasificacion.confianza}`) })}
+          </p>
+          <table style={s.table}>
+            <thead>
+              <tr>
+                <th style={s.th}>{t("clasificacion.clase")}</th>
+                <th style={s.th}>{t("clasificacion.puntaje")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.entries(resultado.clasificacion.probabilidades)
+                .sort((a, b) => b[1] - a[1])
+                .map(([codigo, puntaje]) => (
+                  <tr key={codigo}>
+                    <td style={s.td}>{t(`clasificacion.clases.${codigo}`)}</td>
+                    <td style={s.tdVal}>{puntaje.toFixed(2)}</td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+          {resultado.clasificacion.avisos.length > 0 && (
+            <p style={{ fontSize: "9pt", color: "#8a5a00", margin: "0 0 6pt" }}>
+              {t("clasificacion.pocoConfiable")}{" "}
+              {resultado.clasificacion.avisos.map((a) => t(`clasificacion.avisos.${a}`)).join(" ")}
+            </p>
+          )}
+          <p style={{ fontSize: "8.5pt", color: "#555", margin: "0 0 12pt", textAlign: "justify" }}>
+            {t("clasificacion.modelo", {
+              arboles: resultado.clasificacion.modelo.algoritmo.match(/\d+/)?.[0] ?? "",
+              f1: resultado.clasificacion.modelo.f1_macro_prueba?.toFixed(2) ?? "—",
+            })}
+          </p>
+        </>
+      )}
+
       <div style={s.sectionTitle}>{t("impresion.descriptores")}</div>
       <table style={s.table}>
         <thead>

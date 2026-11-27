@@ -5005,8 +5005,33 @@
     "titulo": "Theoretical models for classical cepheids: V. Multiwavelength relations"
   },
   "Un_atlas_de_estrellas_variables_TESS": {
-  "autores": "Perez, A. M.",
-  "anio": 2022,
-  "titulo": "Un atlas de estrellas variables TESS"
+    "autores": "Perez, A. M.",
+    "anio": 2022,
+    "titulo": "Un atlas de estrellas variables TESS"
+  },
+  "1601.01318v2": {
+    "autores": "Soszynski, I.; Udalski, A.; Szymanski, M. K.; Skowron, D.; Pietrzynski, G.; Poleski, R.",
+    "anio": 2016,
+    "titulo": "The OGLE Collection of Variable Stars. Classical Cepheids in the Magellanic System"
+  },
+  "1601.02020v2": {
+    "autores": "Soszynski, I.; Udalski, A.; Szymanski, M. K.; Poleski, R.; Pietrukowicz, P.; Kozlowski, S.",
+    "anio": 2016,
+    "titulo": "Multi-Mode and Non-Standard Classical Cepheids in the Magellanic System"
+  },
+  "1706.09452v2": {
+    "autores": "Soszyński, I.; Udalski, A.; Szymański, M. K.; Wyrzykowski, Ł.; Ulaczyk, K.; Poleski, R.",
+    "anio": 2017,
+    "titulo": "Concluding Henrietta Leavitt's Work on Classical Cepheids in the Magellanic System and Other Updates of the OGLE Collection of Variable Stars"
+  },
+  "1712.01307v2": {
+    "autores": "Soszyński, I.; Udalski, A.; Szymański, M. K.; Wyrzykowski, Ł.; Ulaczyk, K.; Poleski, R.",
+    "anio": 2017,
+    "titulo": "The OGLE Collection of Variable Stars. Classical, Type II, and Anomalous Cepheids toward the Galactic Center"
+  },
+  "1810.09489v2": {
+    "autores": "Udalski, A.; Soszyński, I.; Pietrukowicz, P.; Szymański, M. K.; Skowron, D. M.; Skowron, J.",
+    "anio": 2018,
+    "titulo": "OGLE Collection of Galactic Cepheids"
   }
 }

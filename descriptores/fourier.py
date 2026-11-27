@@ -18,7 +18,7 @@ def _ajustar(t, y, w, P, n_arm):
     return coef, float(np.sum((w * resid) ** 2)), resid
 
 
-def analizar_fourier(t, y, err, periodo_ls, n_arm=4):
+def analizar_fourier(t, y, err, periodo_ls, n_arm=4, ancho_relativo_max=None):
     """Ajuste de serie de Fourier a la manera de OGLE: período refinado por
     mínimos cuadrados y R_k1 = A_k / A_1, phi_k1 = phi_k - k*phi_1 (en rad)."""
     t = np.asarray(t, float)
@@ -28,6 +28,10 @@ def analizar_fourier(t, y, err, periodo_ls, n_arm=4):
     # 1) Refinar el período: grilla fina alrededor del de Lomb-Scargle
     base = t.max() - t.min()
     ancho = 5 * periodo_ls**2 / base
+    if ancho_relativo_max is not None:
+        # El período ya viene refinado (selección multiarmónica): solo se ajusta fino,
+        # sin permitir saltos a otro submúltiplo.
+        ancho = min(ancho, ancho_relativo_max * periodo_ls)
     grilla = np.linspace(periodo_ls - ancho, periodo_ls + ancho, 4001)
     chi = [_ajustar(t, y, w, p, n_arm)[1] for p in grilla]
     i = int(np.argmin(chi))
@@ -50,6 +54,7 @@ def analizar_fourier(t, y, err, periodo_ls, n_arm=4):
     c, s = coef[1::2], coef[2::2]
     A = np.hypot(c, s)
     phi = np.arctan2(-s, c)
+    t0 = float(t[0])  # origen de fase usado en el ajuste (puede cambiar tras el recorte)
     f = np.linspace(0, 1, 500, endpoint=False)
     modelo = coef[0] + sum(
         c[k] * np.cos(2 * np.pi * (k + 1) * f) + s[k] * np.sin(2 * np.pi * (k + 1) * f)
@@ -63,4 +68,6 @@ def analizar_fourier(t, y, err, periodo_ls, n_arm=4):
         "phi31": float((phi[2] - 3 * phi[0]) % (2 * np.pi)),
         "amplitud_pico_a_pico": float(np.ptp(modelo)),
         "n_armonicos": n_arm,
+        "t_valor_minimo": t0 + float(f[int(np.argmin(modelo))]) * float(P),
+        "t_valor_maximo": t0 + float(f[int(np.argmax(modelo))]) * float(P),
     }

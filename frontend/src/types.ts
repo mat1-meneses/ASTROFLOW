@@ -56,7 +56,40 @@ export interface Derivados {
   amplitud_fats: number;
   R21: number | null;
   R31: number | null;
+  /** Fases de Fourier φ21 y φ31 (rad, serie de cosenos como OGLE). */
+  phi21?: number | null;
+  phi31?: number | null;
   n_atipicos_4sigma: number;
+  /** Ausentes en análisis guardados antes de la selección multiarmónica del período. */
+  periodo_ls_dias?: number | null;
+  metodo_periodo?: "lomb-scargle" | "multiarmonico" | "feets";
+  t_valor_minimo?: number | null;
+  t_valor_maximo?: number | null;
+}
+
+// ─── Clasificador Random Forest (OGLE-III) ───────────────────────────────────
+
+export type ClaseEstrella = "CEP" | "DSCT" | "ECL" | "LPV" | "RRLYR";
+export type ConfianzaClasificacion = "alta" | "media" | "baja";
+export type AvisoClasificacion = "magnitud_fuera_de_rango" | "periodo_fuera_de_rango" | "puntaje_bajo";
+
+export interface Clasificacion {
+  clase: ClaseEstrella;
+  segunda_clase: ClaseEstrella;
+  /** Puntaje del modelo por clase (no es una probabilidad calibrada). */
+  probabilidades: Record<ClaseEstrella, number>;
+  confianza: ConfianzaClasificacion;
+  avisos: AvisoClasificacion[];
+  descriptores: Record<string, number | null>;
+  dominio_entrenamiento: Record<string, [number, number]>;
+  modelo: {
+    algoritmo: string;
+    datos_entrenamiento: string;
+    clases: ClaseEstrella[];
+    f1_macro_prueba: number | null;
+    n_entrenamiento: number | null;
+    n_prueba: number | null;
+  };
 }
 
 export interface ResultadoDescriptores {
@@ -65,6 +98,8 @@ export interface ResultadoDescriptores {
   n_puntos_usados: number;
   descriptores: Record<string, number | number[] | null>;
   derivados: Derivados;
+  /** Ausente en análisis guardados antes de incorporar el clasificador. */
+  clasificacion?: Clasificacion | null;
 }
 
 // ─── Reporte (RAG) ───────────────────────────────────────────────────────────

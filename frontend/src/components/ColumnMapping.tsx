@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import type { ColumnMapping, ParsedFile } from "../types";
 import { isSentinel } from "../data/parseFile";
-import { detectColumnMapping, type Confidence } from "../utils/detectColumns";
+import { detectColumnMapping, esMapeoValido, type Confidence } from "../utils/detectColumns";
 import AppHeader from "./AppHeader";
 
 interface Props {
@@ -51,11 +51,7 @@ export default function ColumnMappingStep({ parsedFile, starName, onConfirm, onB
   const [overridden, setOverridden] = useState<Set<MappingKey>>(new Set());
   const [metaOpen, setMetaOpen] = useState(false);
 
-  const isValid =
-    !!mapping.time &&
-    !!mapping.flux &&
-    !!mapping.error &&
-    new Set([mapping.time, mapping.flux, mapping.error]).size === 3;
+  const isValid = esMapeoValido(mapping);
 
   const previewRows = rows.slice(0, 7);
   const validCount = rows.filter((r) => {

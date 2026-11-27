@@ -187,7 +187,12 @@ async function main() {
   }
 }
 
-main().catch((err) => {
-  console.error('Error durante la ingesta:', err);
-  process.exit(1);
-});
+// Solo ingesta si se ejecuta con "node rag/ingest.js" (no al importarlo desde las pruebas).
+if (require.main === module) {
+  main().catch((err) => {
+    console.error('Error durante la ingesta:', err);
+    process.exit(1);
+  });
+}
+
+module.exports = { chunkText, limpiarTexto, urlArxiv, ingestPdf };

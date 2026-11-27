@@ -139,7 +139,9 @@
       "descriptores": "Computed descriptors",
       "descriptoresBadge": "Python microservice · feets",
       "reporte": "AI-generated report",
-      "reporteBadge": "RAG with scientific sources · editable"
+      "reporteBadge": "RAG with scientific sources · editable",
+      "clasificacion": "Automatic classification",
+      "clasificacionBadge": "Random Forest · OGLE-III"
     },
     "graficos": {
       "curvaLuz": "Light curve",
@@ -148,7 +150,12 @@
       "curvaFase": "Phase-folded curve",
       "curvaFaseSub": "P = {{periodo}} d · two cycles (φ 0–2)",
       "sinPeriodo": "No valid period",
-      "curvaFaseHint": "Phase 0 at the brightest point",
+      "curvaFaseHint": "Phase 0 at maximum brightness (fitted curve)",
+      "curvaFaseHintMinimo": "Phase 0 at minimum brightness (fitted curve), as for eclipsing binaries",
+      "faseCero": "Where to place phase 0",
+      "faseCeroCorto": "Phase 0",
+      "faseCeroMaximo": "Max",
+      "faseCeroMinimo": "Min",
       "ampliar": "Expand",
       "cerrar": "Close",
       "ejeFase": "Phase (φ)",
@@ -170,9 +177,9 @@
       "flujo": "flux"
     },
     "metodos": {
-      "lomb": "Lomb-Scargle (feets)",
+      "lomb": "Lomb-Scargle (astropy)",
       "fats": "FATS formula",
-      "fourier": "Fourier harmonics (feets)",
+      "fourier": "Fourier fit (4 harmonics)",
       "conteo": "Count",
       "mad": "Median and MAD"
     },
@@ -212,6 +219,12 @@
       },
       "r31": {
         "descripcion": "Amplitude of the 3rd harmonic relative to the fundamental"
+      },
+      "phi21": {
+        "descripcion": "Phase difference of the 2nd harmonic: φ2 − 2φ1 (separates, e.g., overtone Cepheids from contact binaries)"
+      },
+      "phi31": {
+        "descripcion": "Phase difference of the 3rd harmonic: φ3 − 3φ1"
       },
       "stetsonK": {
         "parametro": "Stetson K index",
@@ -284,5 +297,32 @@
     "aviso": "This report was written in Spanish.",
     "boton": "Regenerate in English",
     "confirmar": "Regenerating the report will replace your edits. Continue?"
+  },
+  "clasificacion": {
+    "claseProbable": "Most likely star type",
+    "clase": "Class",
+    "puntaje": "Score",
+    "puntajes": "Score per class",
+    "confianza": "{{nivel}} confidence",
+    "niveles": {
+      "alta": "High",
+      "media": "Medium",
+      "baja": "Low"
+    },
+    "clases": {
+      "CEP": "Cepheid",
+      "DSCT": "δ Scuti",
+      "ECL": "Eclipsing binary",
+      "LPV": "Long-period variable",
+      "RRLYR": "RR Lyrae"
+    },
+    "pocoConfiable": "Unreliable classification:",
+    "avisos": {
+      "magnitud_fuera_de_rango": "the mean magnitude is outside the range of the training data (OGLE-III, calibrated I-band magnitudes); with instrumental magnitudes or another band the result may not be valid.",
+      "periodo_fuera_de_rango": "the period is outside the range of the training data.",
+      "puntaje_bajo": "no class reaches a score of 0.5."
+    },
+    "modelo": "Random Forest model ({{arboles}} trees) trained on OGLE-III light curves (I band). Macro F1 on the external test: {{f1}}. Scores show the model's preference; they are not calibrated probabilities.",
+    "noDisponible": "Classification not available: the analysis was saved before the classifier was added, or no valid period was found."
   }
 }

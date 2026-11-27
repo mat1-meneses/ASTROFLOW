@@ -4,3 +4,7 @@ diagnostico_amplitud.py
 probar_descriptores.py
 Dockerfile
 .dockerignore
+tests/
+pytest.ini
+requirements-dev.txt
+.pytest_cache/

@@ -109,6 +109,21 @@ export function filasDescriptores(
     },
   ];
 
+  // Fases de Fourier: ausentes en análisis guardados antes de que el microservicio las entregara.
+  for (const [clave, nombre, valor] of [
+    ["phi21", "φ21", der.phi21],
+    ["phi31", "φ31", der.phi31],
+  ] as const) {
+    if (valor === undefined) continue;
+    filas.push({
+      parametro: nombre,
+      valor: fmt(valor, 3),
+      unidad: "rad",
+      metodo: metodoFourier,
+      descripcion: f(clave, "descripcion"),
+    });
+  }
+
   if (d.StetsonK !== undefined) {
     filas.push({
       parametro: f("stetsonK", "parametro"),

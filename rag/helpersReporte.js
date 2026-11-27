@@ -1,4 +1,4 @@
-const MAX_DECIMALES = 4;
+const MAX_DECIMALES = 5;
 
 // feets/FATS entrega la SEMIAMPLITUD; el rango completo se calcula en código.
 function enriquecerDescriptores(d) {
@@ -83,7 +83,8 @@ function verificarNumeros(reporte, descriptores, chunks) {
   const limpio = reporte
     .replace(/\[[^\]]*\]/g, ' ')
     .replace(/\([^)]*\b(19|20)\d{2}\b[^)]*\)/g, ' ')
-    .replace(/^#+\s.*$/gm, ' ');
+    .replace(/^#+\s.*$/gm, ' ')
+    .replace(/(\d),(\d)/g, '$1.$2'); // coma decimal en español: 0,71 -> 0.71
   const sospechosos = new Set();
   for (const m of limpio.matchAll(/(?<![\w.])\d+(?:\.\d+)?(?:e-?\d+)?/gi)) {
     if (!aceptados.has(Number(m[0]))) sospechosos.add(m[0]);

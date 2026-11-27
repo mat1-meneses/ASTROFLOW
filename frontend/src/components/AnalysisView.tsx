@@ -2,10 +2,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { Analisis, Reporte } from "../types";
 import { generarReporte } from "../api/analisis";
-import { plegarEnFase, puntosDesdeSerie } from "../utils/fase";
+import { plegarEnFase, puntosDesdeSerie, type FaseCero } from "../utils/fase";
 import LightCurveChart from "./charts/LightCurveChart";
 import PhasedCurveChart from "./charts/PhasedCurveChart";
 import DescriptorsPanel from "./DescriptorsPanel";
+import ClasificacionPanel from "./ClasificacionPanel";
 import ReportPanel from "./ReportPanel";
 import PrintView from "./PrintView";
 import UserMenu from "./UserMenu";
@@ -42,9 +43,15 @@ export default function AnalysisView({
   const periodo = resultado.derivados.periodo_principal_dias;
 
   const puntos = useMemo(() => puntosDesdeSerie(serie), [serie]);
+  const [faseCero, setFaseCero] = useState<FaseCero>("maximo");
+  const { t_valor_minimo, t_valor_maximo } = resultado.derivados;
   const fase = useMemo(
-    () => plegarEnFase(puntos, periodo, configuracion.tipoBrillo),
-    [puntos, periodo, configuracion.tipoBrillo]
+    () =>
+      plegarEnFase(puntos, periodo, configuracion.tipoBrillo, faseCero, {
+        tValorMinimo: t_valor_minimo,
+        tValorMaximo: t_valor_maximo,
+      }),
+    [puntos, periodo, configuracion.tipoBrillo, faseCero, t_valor_minimo, t_valor_maximo]
   );
 
   // ─── Reporte RAG ───────────────────────────────────────────────────────────
@@ -206,10 +213,15 @@ export default function AnalysisView({
                   ? t("analisis.graficos.curvaFaseSub", { periodo: periodo.toFixed(5) })
                   : t("analisis.graficos.sinPeriodo")
               }
-              hint={t("analisis.graficos.curvaFaseHint")}
+              hint={t(faseCero === "maximo" ? "analisis.graficos.curvaFaseHint" : "analisis.graficos.curvaFaseHintMinimo")}
+              acciones={periodo ? <SelectorFaseCero valor={faseCero} onChange={setFaseCero} /> : null}
               render={(alto) => <PhasedCurveChart points={fase} yLabel={yLabel} invertir={invertir} alto={alto} />}
             />
           </div>
+        </Section>
+
+        <Section title={t("analisis.secciones.clasificacion")} badge={t("analisis.secciones.clasificacionBadge")}>
+          <ClasificacionPanel clasificacion={resultado.clasificacion} />
         </Section>
 
         <Section title={t("analisis.secciones.descriptores")} badge={t("analisis.secciones.descriptoresBadge")}>
@@ -255,11 +267,13 @@ interface ChartCardProps {
   title: string;
   subtitle: string;
   hint?: string;
+  /** Controles extra junto al botón Ampliar (p. ej. el selector de fase 0). */
+  acciones?: React.ReactNode;
   /** Dibuja el gráfico con el alto indicado (270 px en la tarjeta, "100%" ampliado). */
   render: (alto: number | `${number}%`) => React.ReactNode;
 }
 
-function ChartCard({ title, subtitle, hint, render }: ChartCardProps) {
+function ChartCard({ title, subtitle, hint, acciones, render }: ChartCardProps) {
   const { t } = useTranslation();
   const [ampliado, setAmpliado] = useState(false);
   const cerrar = useCallback(() => setAmpliado(false), []);
@@ -273,6 +287,8 @@ function ChartCard({ title, subtitle, hint, render }: ChartCardProps) {
             <p className="text-xs text-astro-muted font-mono mt-0.5">{subtitle}</p>
             {hint && <p className="text-xs text-astro-muted mt-1 opacity-60">{hint}</p>}
           </div>
+          <div className="flex-shrink-0 flex items-center gap-2">
+          {acciones}
           <button
             type="button"
             onClick={() => setAmpliado(true)}
@@ -285,6 +301,7 @@ function ChartCard({ title, subtitle, hint, render }: ChartCardProps) {
             </svg>
             {t("analisis.graficos.ampliar")}
           </button>
+          </div>
         </div>
         {render(270)}
       </div>
@@ -344,6 +361,35 @@ function VistaAmpliada({ title, subtitle, onClose, children }: { title: string; 
         </button>
       </div>
       <div className="flex-1 min-h-0">{children}</div>
+    </div>
+  );
+}
+
+/** Elige dónde va la fase 0 del gráfico en fase: máximo de brillo (pulsantes) o mínimo (eclipsantes). */
+function SelectorFaseCero({ valor, onChange }: { valor: FaseCero; onChange: (v: FaseCero) => void }) {
+  const { t } = useTranslation();
+  const opciones: FaseCero[] = ["maximo", "minimo"];
+  return (
+    <div
+      role="group"
+      aria-label={t("analisis.graficos.faseCero")}
+      title={t("analisis.graficos.faseCero")}
+      className="flex items-center text-xs border border-astro-border rounded overflow-hidden"
+    >
+      <span className="px-2 py-1.5 text-astro-muted hidden sm:inline">{t("analisis.graficos.faseCeroCorto")}</span>
+      {opciones.map((op) => (
+        <button
+          key={op}
+          type="button"
+          aria-pressed={valor === op}
+          onClick={() => onChange(op)}
+          className={`px-2.5 py-1.5 border-l border-astro-border transition-colors ${
+            valor === op ? "bg-astro-accent/15 text-astro-accent" : "text-astro-muted hover:text-astro-text"
+          }`}
+        >
+          {t(op === "maximo" ? "analisis.graficos.faseCeroMaximo" : "analisis.graficos.faseCeroMinimo")}
+        </button>
+      ))}
     </div>
   );
 }

@@ -17,8 +17,11 @@ except ImportError:
 import feets.preprocess
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
+from periodo import buscar_periodo
 from fourier import analizar_fourier
+from clasificador import clasificar
 N_ARMONICOS = 4
+
 
 app = FastAPI(title="ASTROFLOW – Servicio de descriptores")
 
@@ -109,21 +112,39 @@ def calcular_descriptores(lc: CurvaDeLuz):
     mad = 1.4826 * np.median(np.abs(mag - med))
     a0 = d.get("Freq1_harmonics_amplitude_0")
 
-    periodo_ls = d["PeriodLS"][0] if d.get("PeriodLS") else None
+    # Período: Lomb-Scargle + selección entre candidatos (ver periodo.py)
+    try:
+        busqueda = buscar_periodo(datos["time"], datos["magnitude"], datos.get("error"))
+    except Exception:
+        traceback.print_exc()
+        busqueda = None
+    if busqueda is None:  # respaldo: el período de feets
+        p_feets = d["PeriodLS"][0] if d.get("PeriodLS") else None
+        busqueda = {"periodo": p_feets, "periodo_ls": p_feets,
+                    "prob_falsa_alarma": d["Period_fit"][0] if d.get("Period_fit") else None,
+                    "metodo": "feets"}
+    periodo_ls = busqueda["periodo_ls"]
+    fap = busqueda["prob_falsa_alarma"]
     fo = None
-    if periodo_ls:
+    if busqueda["periodo"]:
         try:
             fo = analizar_fourier(
                 datos["time"], datos["magnitude"], datos.get("error"),
-                periodo_ls, N_ARMONICOS,
+                busqueda["periodo"], N_ARMONICOS,
+                ancho_relativo_max=0.02 if busqueda["metodo"] == "multiarmonico" else None,
             )
         except Exception:
             fo = None  # si falla, se usan los valores de feets
 
     derivados = {
-        "periodo_principal_dias": fo["periodo"] if fo else periodo_ls,
+        "periodo_principal_dias": fo["periodo"] if fo else busqueda["periodo"],
         "periodo_ls_dias": periodo_ls,
-        "prob_falsa_alarma": d["Period_fit"][0] if d.get("Period_fit") else None,
+        "metodo_periodo": busqueda["metodo"],
+        # Instantes del máximo y del mínimo del valor ajustado (Fourier): sirven para fijar
+        # la fase 0 del gráfico sin depender de un punto aislado (que puede ser un atípico).
+        "t_valor_minimo": fo["t_valor_minimo"] if fo else None,
+        "t_valor_maximo": fo["t_valor_maximo"] if fo else None,
+        "prob_falsa_alarma": fap,
         "amplitud_fats": amplitud_fats(mag),
         "R21": fo["R21"] if fo else (d["Freq1_harmonics_amplitude_1"] / a0 if a0 else None),
         "R31": fo["R31"] if fo else (d["Freq1_harmonics_amplitude_2"] / a0 if a0 else None),
@@ -136,10 +157,19 @@ def calcular_descriptores(lc: CurvaDeLuz):
         "n_atipicos_4sigma": int((np.abs(mag - med) > 4 * mad).sum()) if mad > 0 else 0,
     }
 
+    # Tipo de estrella según el clasificador Random Forest (OGLE-III). Si falla,
+    # se entregan igual los descriptores: la clasificación es un complemento.
+    try:
+        clasificacion = clasificar(datos["time"], datos["magnitude"], derivados["periodo_principal_dias"])
+    except Exception:
+        traceback.print_exc()
+        clasificacion = None
+
     return {
         "n_puntos_recibidos": n,
         "n_descartados_faltantes": n_descartados,
         "n_puntos_usados": n_final,
         "descriptores": d,
         "derivados": derivados,
+        "clasificacion": clasificacion,
     }

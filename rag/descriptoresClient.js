@@ -1,22 +1,42 @@
 require('dotenv').config();
 
 const URL_DESCRIPTORES = process.env.DESCRIPTORES_URL || 'http://127.0.0.1:8000';
+// Si el microservicio no responde en este tiempo, se corta la espera con un error claro.
+const TIEMPO_MAXIMO_MS = Number(process.env.DESCRIPTORES_TIMEOUT_MS) || 60000;
 
 /**
  * Llama al microservicio Python (FastAPI + feets) y devuelve su respuesta completa.
  * @param {{time: number[], magnitude: number[], error?: number[]}} curva
  */
-async function obtenerDescriptores({ time, magnitude, error = null }) {
-  const resp = await fetch(`${URL_DESCRIPTORES}/descriptores`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ time, magnitude, error, limpiar_ruido: true }),
-  });
-  const cuerpo = await resp.json();
+async function obtenerDescriptores({ time, magnitude, error = null }, { timeoutMs = TIEMPO_MAXIMO_MS } = {}) {
+  let resp;
+  try {
+    resp = await fetch(`${URL_DESCRIPTORES}/descriptores`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ time, magnitude, error, limpiar_ruido: true }),
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+  } catch (err) {
+    if (err.name === 'TimeoutError' || err.name === 'AbortError') {
+      throw new Error(`Servicio de descriptores: no respondió en ${Math.round(timeoutMs / 1000)} s.`);
+    }
+    throw err; // p. ej. 'fetch failed' cuando el servicio no está levantado
+  }
+
+  const texto = await resp.text();
+  let cuerpo = null;
+  try {
+    cuerpo = JSON.parse(texto);
+  } catch {
+    // respuesta no JSON (por ejemplo, una página de error del servidor)
+  }
   if (!resp.ok) {
-    const detalle = typeof cuerpo.detail === 'string' ? cuerpo.detail : JSON.stringify(cuerpo.detail);
+    const det = cuerpo?.detail;
+    const detalle = typeof det === 'string' ? det : det ? JSON.stringify(det) : texto.slice(0, 200) || 'sin detalle';
     throw new Error(`Servicio de descriptores (${resp.status}): ${detalle}`);
   }
+  if (!cuerpo) throw new Error('Servicio de descriptores: la respuesta no es JSON válido.');
   return cuerpo;
 }
 
@@ -28,6 +48,38 @@ async function obtenerDescriptores({ time, magnitude, error = null }) {
  * @param {object} respuesta - respuesta de obtenerDescriptores()
  * @param {{calibracion?: 'instrumental'|'estandar'|'desconocida', banda?: string|null}} opciones
  */
+// Nombres de las clases del clasificador (en inglés, como el corpus de papers).
+const NOMBRES_CLASE = {
+  CEP: 'Cepheid',
+  DSCT: 'Delta Scuti',
+  ECL: 'eclipsing binary',
+  LPV: 'long-period variable (Mira or semiregular)',
+  RRLYR: 'RR Lyrae',
+};
+
+const TEXTO_AVISO = {
+  magnitud_fuera_de_rango:
+    'La magnitud media está fuera del rango de los datos de entrenamiento del clasificador (OGLE-III, magnitudes calibradas en banda I).',
+  periodo_fuera_de_rango: 'El período está fuera del rango de los datos de entrenamiento del clasificador.',
+  puntaje_bajo: 'El puntaje de la clase más probable es menor a 0.5.',
+};
+
+/** Resultado del clasificador Random Forest en el formato que recibe el LLM. */
+function adaptarClasificacion(c) {
+  if (!c || !c.clase) return null;
+  return {
+    clase: NOMBRES_CLASE[c.clase] ?? c.clase,
+    puntaje: c.probabilidades?.[c.clase] ?? null,
+    segundaClase: NOMBRES_CLASE[c.segunda_clase] ?? c.segunda_clase ?? null,
+    puntajeSegunda: c.probabilidades?.[c.segunda_clase] ?? null,
+    confianza: c.confianza,
+    avisos: (c.avisos || []).map((a) => TEXTO_AVISO[a] ?? a),
+    modelo:
+      'Random Forest entrenado con curvas de luz de OGLE-III (clases: Cepheid, Delta Scuti, eclipsing binary, ' +
+      'long-period variable, RR Lyrae). Los puntajes son del modelo, no probabilidades calibradas.',
+  };
+}
+
 function adaptarParaReporte(respuesta, { calibracion = 'desconocida', banda = null } = {}) {
   const d = respuesta.derivados;
   const descartados = respuesta.n_puntos_recibidos - respuesta.n_puntos_usados;
@@ -38,14 +90,27 @@ function adaptarParaReporte(respuesta, { calibracion = 'desconocida', banda = nu
   } else if (calibracion !== 'estandar') {
     notas.push('El archivo no declara la calibración fotométrica: la magnitud media no debe interpretarse como magnitud aparente.');
   }
+  if (d.metodo_periodo === 'multiarmonico' && typeof d.periodo_ls_dias === 'number') {
+    notas.push(
+      `El pico más alto del periodograma Lomb-Scargle estaba en ${Number(d.periodo_ls_dias.toFixed(5))} d, ` +
+      'un submúltiplo del período: el período informado se eligió con un ajuste de Fourier de varios armónicos, ' +
+      'que reproduce mejor curvas no sinusoidales (típico de binarias eclipsantes).'
+    );
+  }
   if (d.n_atipicos_4sigma > 0) {
     notas.push(`Tras la limpieza, ${d.n_atipicos_4sigma} punto(s) atípico(s) a más de 4 sigmas robustas permanece(n) en los datos analizados (no fue descartado).`);
   }
 
   const f = respuesta.descriptores || {};
+  const clasificacionModelo = adaptarClasificacion(respuesta.clasificacion);
+  // Solo una clasificación confiable orienta la búsqueda de papers.
+  const confiable = clasificacionModelo && clasificacionModelo.confianza !== 'baja';
   const num = (v) => (typeof v === 'number' && Number.isFinite(v) ? v : null);
 
   return {
+    clasificacionModelo,
+    tipoProbable: confiable ? clasificacionModelo.clase : null,
+    segundoTipo: confiable && clasificacionModelo.puntajeSegunda >= 0.2 ? clasificacionModelo.segundaClase : null,
     periodo: d.periodo_principal_dias,
     periodoHoras: d.periodo_principal_dias === null ? null : Number((d.periodo_principal_dias * 24).toFixed(2)),
     probabilidadFalsaAlarma: d.prob_falsa_alarma,
@@ -68,4 +133,4 @@ function adaptarParaReporte(respuesta, { calibracion = 'desconocida', banda = nu
   };
 }
 
-module.exports = { obtenerDescriptores, adaptarParaReporte };
+module.exports = { obtenerDescriptores, adaptarParaReporte, NOMBRES_CLASE };

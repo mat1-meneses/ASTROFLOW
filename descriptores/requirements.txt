@@ -2,3 +2,7 @@ feets
 fastapi
 uvicorn
 requests
+astropy
+pandas
+# El clasificador se entrenó con scikit-learn 1.9: se fija la misma versión para cargarlo sin diferencias.
+scikit-learn==1.9.*
