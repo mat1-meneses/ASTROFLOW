@@ -107,8 +107,16 @@ function adaptarParaReporte(respuesta, { calibracion = 'desconocida', banda = nu
   const confiable = clasificacionModelo && clasificacionModelo.confianza !== 'baja';
   const num = (v) => (typeof v === 'number' && Number.isFinite(v) ? v : null);
 
+  // Caso parejo: confianza media y una segunda clase fuerte. Se decide aquí (no en el LLM)
+  // para que el reporte concluya siempre "indeterminada entre ambas", en cualquier entorno.
+  const casoParejo =
+    clasificacionModelo && clasificacionModelo.confianza === 'media' && clasificacionModelo.puntajeSegunda >= 0.2
+      ? { clases: [clasificacionModelo.clase, clasificacionModelo.segundaClase] }
+      : null;
+
   return {
     clasificacionModelo,
+    casoParejo,
     tipoProbable: confiable ? clasificacionModelo.clase : null,
     segundoTipo: confiable && clasificacionModelo.puntajeSegunda >= 0.2 ? clasificacionModelo.segundaClase : null,
     periodo: d.periodo_principal_dias,

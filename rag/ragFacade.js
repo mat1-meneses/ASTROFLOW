@@ -41,6 +41,7 @@ const IDIOMAS = {
     nombre: 'Spanish',
     etiquetaFuente: 'Fuente',
     avisoTruncado: 'Reporte incompleto: la respuesta del modelo alcanzó el límite de longitud. Vuelve a generarlo.',
+    avisoCasoParejo: 'Caso parejo: el reporte debía concluir "indeterminada" entre las dos clases más probables y no lo hizo. Revisa la conclusión.',
     confianza: ['alta', 'media', 'baja'],
     indeterminada: 'indeterminada',
     secciones: [
@@ -54,6 +55,7 @@ const IDIOMAS = {
     nombre: 'English',
     etiquetaFuente: 'Source',
     avisoTruncado: 'Incomplete report: the model response hit the length limit. Please regenerate it.',
+    avisoCasoParejo: 'Close case: the report should conclude "indeterminate" between the two most likely classes and did not. Check the conclusion.',
     confianza: ['high', 'medium', 'low'],
     indeterminada: 'indeterminate',
     secciones: [
@@ -182,6 +184,8 @@ Your task has three parts:
 15. Compare a descriptor only with ranges or values stated in the sources. Never compare it with mathematical constants (π, 2π, 1.5π…) or with ranges that no source gives.
 16. Use a criterion only if the star falls inside the period range (or class) that the source states for it. If the star is outside that range, do not apply the criterion; say that the sources do not cover that range.
 17. Before saying a value is near the "lower" or "upper" limit of a range, check both limits of that range as written in the source.
+18. The standard deviation of the magnitudes of a variable star mainly reflects the amplitude of its brightness variation (plus noise). Never describe it as the precision of the measurements.
+19. phi21 and phi31 are phase differences (angles in radians), not amplitudes. Never describe them as "small", "large" or as a measure of harmonic contribution; only compare them with phase values given in the sources.
 </rules>
 
 <classification_procedure>
@@ -191,6 +195,7 @@ Criteria to use, always taken from the sources: period range, amplitude, light-c
 If <descriptors> contains "clasificacionModelo", that is the star type computed by the platform's machine-learning classifier. Always report its class, its score ("puntaje") and its confidence ("confianza") exactly as given; they are computed results, like the period. The scores are model scores, not calibrated probabilities: never call them probabilities or percentages of certainty. Then, depending on its confidence:
 - "alta" / high: check the criteria in the sources against the descriptors and state whether they agree or disagree with the model's class, citing them. The most likely type of the report is the model's class.
 - "media" / medium: evaluate the model's class, its second class and the other candidates with the criteria above. If the descriptors meet the cited criteria of another class clearly better, say so explicitly, for example: "The classifier proposes X (score …, medium confidence), but the period, R21 and phi21 are more consistent with Y [n]". In that case the most likely type of the report is that other class, and the model's class becomes the second most likely. If the evidence does not clearly favor another class, keep the model's class.
+- If <descriptors> contains "casoParejo", the conclusion is already decided by the platform: the most likely type is "${cfg.indeterminada}" between the two classes listed in "casoParejo" (name both). Do not choose either class, not even "probably". You may state which cited evidence points to each class, and you must name the descriptor that would separate them (for example, phi21 versus period for first-overtone Cepheids and contact binaries). Write this same conclusion in the summary and in the final line of the classification section.
 - "baja" / low, or it has warnings ("avisos"): state clearly that the automatic classification is unreliable and why, and then classify with the procedure below as if it were absent.
 If "clasificacionModelo" is absent or null, use the procedure below.
 
@@ -342,6 +347,7 @@ async function generarReporte(descriptores, { idioma = 'es' } = {}) {
   );
   const advertencias = [
     ...(truncado ? [cfg.avisoTruncado] : []),
+    ...(descriptoresRedondeados.casoParejo && !/indetermin/i.test(reporteBruto) ? [cfg.avisoCasoParejo] : []),
     ...verificarCatalogosCitados(reporteBruto, chunksContexto),
     ...inexistentes,
     ...verificarNumeros(reporteBruto, descriptoresRedondeados, chunksContexto)

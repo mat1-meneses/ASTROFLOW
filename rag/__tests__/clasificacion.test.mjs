@@ -101,6 +101,13 @@ describe("prompt de clasificación según la confianza del modelo", () => {
     expect(system).toMatch(/phi21/);
   });
 
+  it("el prompt fija la conclusión 'indeterminada' cuando los descriptores traen casoParejo", async () => {
+    const { system } = await promptPara("media");
+    expect(system).toMatch(/If <descriptors> contains "casoParejo", the conclusion is already decided by the platform/);
+    expect(system).toMatch(/Do not choose either class/);
+    expect(system).toMatch(/phi21 and phi31 are phase differences \(angles in radians\), not amplitudes/);
+  });
+
   it("con curva casi sinusoidal (R21 pequeño) se buscan papers de cefeidas de sobretono, antes que las consultas genéricas", async () => {
     const { consultas } = await promptPara("media", 0.12);
     const i = consultas.findIndex((q) => /^first-overtone classical Cepheids/.test(q));
@@ -133,6 +140,40 @@ describe("prompt de clasificación según la confianza del modelo", () => {
     const { generarReporte } = require("../ragFacade.js");
     await generarReporte(adaptarParaReporte(respuesta("media")));
     expect(enviados[0].messages[0].content.match(/<source id=/g)).toHaveLength(1);
+  });
+});
+
+describe("caso parejo decidido en el código", () => {
+  it("confianza media con segunda clase ≥ 0,2 marca casoParejo; alta, baja o segunda débil no", () => {
+    expect(adaptarParaReporte(respuesta("media")).casoParejo).toEqual({ clases: ["eclipsing binary", "RR Lyrae"] });
+    expect(adaptarParaReporte(respuesta("alta")).casoParejo).toBeNull();
+    expect(adaptarParaReporte(respuesta("baja", ["puntaje_bajo"])).casoParejo).toBeNull();
+    const debil = respuesta("media");
+    debil.clasificacion.probabilidades = { CEP: 0.1, DSCT: 0.1, ECL: 0.62, LPV: 0.03, RRLYR: 0.15 };
+    expect(adaptarParaReporte(debil).casoParejo).toBeNull();
+  });
+
+  async function reporteCon(textoLLM) {
+    require.cache[rutaRetrieve] = {
+      id: rutaRetrieve, filename: rutaRetrieve, loaded: true,
+      exports: { retrieveContext: async () => [{ titulo: "p", contenido: "texto" }] },
+    };
+    vi.stubGlobal("fetch", async () =>
+      new Response(JSON.stringify({ content: [{ type: "text", text: `<report>${textoLLM}</report>` }] }), { status: 200 })
+    );
+    delete require.cache[rutaFacade];
+    const { generarReporte } = require("../ragFacade.js");
+    return generarReporte(adaptarParaReporte(respuesta("media")));
+  }
+
+  it("si en un caso parejo el reporte elige una clase, se agrega una advertencia", async () => {
+    const r = await reporteCon("## Resumen\nLa estrella es probablemente una binaria eclipsante.");
+    expect(r.advertencias.join(" ")).toMatch(/Caso parejo/);
+  });
+
+  it("si el reporte concluye 'indeterminada', no hay advertencia de caso parejo", async () => {
+    const r = await reporteCon("## Resumen\nClasificación indeterminada entre binaria eclipsante y RR Lyrae.");
+    expect(r.advertencias.join(" ")).not.toMatch(/Caso parejo/);
   });
 });
 

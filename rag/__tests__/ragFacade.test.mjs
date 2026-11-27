@@ -141,6 +141,7 @@ describe("buildSystemPrompt — reglas contra comparaciones sin respaldo", () =>
     expect(system).toMatch(/Never compare it with mathematical constants/);
     expect(system).toMatch(/Use a criterion only if the star falls inside the period range/);
     expect(system).toMatch(/check both limits of that range/);
+    expect(system).toMatch(/Never describe it as the precision of the measurements/);
   });
 });
 
